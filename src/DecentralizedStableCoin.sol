@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.18;
 
+import {ERC20, ERC20Burnable} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title Decentralized Stablecoin 
@@ -12,6 +14,20 @@ pragma solidity ^0.8.18;
  * 
  * @notice This contract is governed by DSCEngine. This contract is ERC20 implementation of stablecoin system.
  */
-contract DecentralizedStableCoin {
+contract DecentralizedStableCoin is ERC20Burnable, Ownable(msg.sender) {
 
+    error DecentralizedStableCoin__NotEnoughBalance();
+    error DecentralizedStableCoin__AmoutCannotBeZero();
+
+    constructor() ERC20("DecentralizedStableCoin", "DSC") {
+
+    }
+
+    function burn(uint256 _amount) public override {
+        uint256 balance = balanceOf(msg.sender);
+        if (_amount <= 0) revert DecentralizedStableCoin__AmoutCannotBeZero();
+        if (balance < _amount) revert DecentralizedStableCoin__NotEnoughBalance();
+        
+    }
+    
 }
