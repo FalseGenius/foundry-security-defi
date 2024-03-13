@@ -6,23 +6,20 @@ import {ERC20, ERC20Burnable} from "@openzeppelin/contracts/token/ERC20/extensio
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
- * @title Decentralized Stablecoin 
+ * @title Decentralized Stablecoin
  * @author FalseGenius
  * Collateral: Exogenous (ETH & BTC)
  * Minting: Algorithmic
  * Relative Stability: Pegged to USD
- * 
+ *
  * @notice This contract is governed by DSCEngine. This contract is ERC20 implementation of stablecoin system.
  */
 contract DecentralizedStableCoin is ERC20Burnable, Ownable(msg.sender) {
-
     error DecentralizedStableCoin__BurnAmountExceedsBalance();
     error DecentralizedStableCoin__AmoutCannotBeZero();
     error DecentralizedStableCoin__AddressCannotBeEmpty();
 
-    constructor() ERC20("DecentralizedStableCoin", "DSC") {
-
-    }
+    constructor() ERC20("DecentralizedStableCoin", "DSC") {}
 
     /**
      * @dev super keyword indicates that burn should be used from the parent class
@@ -34,7 +31,7 @@ contract DecentralizedStableCoin is ERC20Burnable, Ownable(msg.sender) {
         super.burn(_amount);
     }
 
-    function mint(address _to, uint256 _amount) external onlyOwner  returns (bool) {
+    function mint(address _to, uint256 _amount) external onlyOwner returns (bool) {
         if (_to == address(0)) revert DecentralizedStableCoin__AddressCannotBeEmpty();
         if (_amount <= 0) revert DecentralizedStableCoin__AmoutCannotBeZero();
 
@@ -42,5 +39,4 @@ contract DecentralizedStableCoin is ERC20Burnable, Ownable(msg.sender) {
 
         return true;
     }
-    
 }
