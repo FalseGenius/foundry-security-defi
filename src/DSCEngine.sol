@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.18;
 
+import {DecentralizedStableCoin} from "./DecentralizedStableCoin.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title DSCEngine
@@ -22,15 +24,35 @@ pragma solidity ^0.8.18;
  * well as depositing & withdrawing collateral.
  * @notice This contract is very loosely based on MakerDSS (DAI) system.
  */
-contract DSCEngine {
+contract DSCEngine is ReentrancyGuard {
 
+    error DSCEngine__NotAllowedToken();
     error DSCEngine__NeedsMoreThanZero();
+    error DSCEngine__TokenAndPriceFeedAddressesMustBeSameLength();
 
     mapping(address token => address priceFeed) private s_priceFeeds;
+    address private owner;
+    
+    DecentralizedStableCoin private immutable i_dsc;
 
     modifier moreThanZero(uint256 amount) {
         if (amount == 0) revert DSCEngine__NeedsMoreThanZero();
         _;
+    }
+
+    modifier isAllowedToken(address token) {
+        if (s_priceFeeds[token] == address(0)) revert DSCEngine__NotAllowedToken();
+        _;
+    }
+
+    constructor(address[] memory tokenAddresses, address[] memory priceFeedAddresses, address dscAddress) {
+        if (tokenAddresses.length != priceFeedAddresses.length) revert DSCEngine__TokenAndPriceFeedAddressesMustBeSameLength();
+        owner = msg.sender;
+        i_dsc = DecentralizedStableCoin(dscAddress);
+        
+        for (uint256 i = 0; i < tokenAddresses.length; i++) {
+            s_priceFeeds[tokenAddresses[i]] = priceFeedAddresses[i];
+        }
     }
 
 
@@ -40,7 +62,8 @@ contract DSCEngine {
      * @param tokenCollateralAddress Address of token to deposit as collateral
      * @param amountCollateral Amount of token to deposit as collateral
      */
-    function depositCollateral(address tokenCollateralAddress, uint256 amountCollateral) external moreThanZero(amountCollateral) {
+    function depositCollateral(address tokenCollateralAddress, uint256 amountCollateral) external 
+    moreThanZero(amountCollateral) isAllowedToken(tokenCollateralAddress) nonReentrant {
 
     }
 
