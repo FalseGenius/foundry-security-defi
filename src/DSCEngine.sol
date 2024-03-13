@@ -4,6 +4,7 @@ pragma solidity ^0.8.18;
 
 import {DecentralizedStableCoin} from "./DecentralizedStableCoin.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title DSCEngine
@@ -25,6 +26,8 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
  * @notice This contract is very loosely based on MakerDSS (DAI) system.
  */
 contract DSCEngine is ReentrancyGuard {
+    
+    error DSCEngine__TransferFailed();
     error DSCEngine__NotAllowedToken();
     error DSCEngine__NeedsMoreThanZero();
     error DSCEngine__TokenAndPriceFeedAddressesMustBeSameLength();
@@ -34,6 +37,8 @@ contract DSCEngine is ReentrancyGuard {
     mapping(address user => mapping(address token => uint256 amount)) private s_collateralDeposited;
 
     DecentralizedStableCoin private immutable i_dsc;
+
+    event CollateralDeposited(address indexed sender, address indexed token, uint256 indexed amountCollateral);
 
     modifier moreThanZero(uint256 amount) {
         if (amount == 0) revert DSCEngine__NeedsMoreThanZero();
@@ -70,6 +75,9 @@ contract DSCEngine is ReentrancyGuard {
         nonReentrant
     {
         s_collateralDeposited[msg.sender][tokenCollateralAddress] += amountCollateral;
+        emit CollateralDeposited(msg.sender, tokenCollateralAddress, amountCollateral);
+        bool success = IERC20(tokenCollateralAddress).transferFrom(msg.sender, address(this), amountCollateral);
+        if (!success) revert DSCEngine__TransferFailed();
     }
 
     function redeemCollateralForDsc() external {}
