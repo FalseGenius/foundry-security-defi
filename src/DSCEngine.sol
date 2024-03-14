@@ -36,6 +36,8 @@ contract DSCEngine is ReentrancyGuard {
     mapping(address user => uint256 amountDscMinted) private s_dscMinted;
     mapping(address user => mapping(address token => uint256 amount)) private s_collateralDeposited;
 
+    address[] private s_collateralTokens;
+
     DecentralizedStableCoin private immutable i_dsc;
 
     event CollateralDeposited(address indexed sender, address indexed token, uint256 indexed amountCollateral);
@@ -59,6 +61,7 @@ contract DSCEngine is ReentrancyGuard {
 
         for (uint256 i = 0; i < tokenAddresses.length; i++) {
             s_priceFeeds[tokenAddresses[i]] = priceFeedAddresses[i];
+            s_collateralTokens.push(tokenAddresses[i]);
         }
     }
 
@@ -109,8 +112,6 @@ contract DSCEngine is ReentrancyGuard {
     //// Private and Internal Functions ////
     ////////////////////////////////////////
 
-    function getCollateralValueInUsd(address user) private view returns (uint256) {}
-
     function _getAccountInFormation(address user ) private view returns (uint256 totalDscMinted, uint256 collateralValueInUsd) {
         totalDscMinted = s_dscMinted[user];
         collateralValueInUsd = getCollateralValueInUsd(user);
@@ -129,4 +130,24 @@ contract DSCEngine is ReentrancyGuard {
     function _revertIfHealthFactorIsBroken(address user) internal view {
 
     }
+
+
+
+    //////////////////////////
+    //// Public Functions ////
+    //////////////////////////
+
+    function getCollateralValueInUsd(address user) public view returns (uint256) {
+        // Loop through collateral deposited, map each to its usd price and get total by summing them up.
+        for (uint256 i = 0; i < s_collateralTokens.length; i++) {
+            address token = s_collateralTokens[i];
+            uint256 amountDeposited = s_collateralDeposited[user][token];
+
+        }
+    }
+
+    function getUsdValue(address token, uint256 amount) public view returns (uint256) {
+        
+    }
+
 }
