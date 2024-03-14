@@ -31,12 +31,15 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
  * Reference: https://docs.chain.link/data-feeds/price-feeds/addresses?network=ethereum&page=1
  */
 contract DSCEngine is ReentrancyGuard {
+    error DSCEngine__MintFailed();
     error DSCEngine__TransferFailed();
     error DSCEngine__NotAllowedToken();
     error DSCEngine__NeedsMoreThanZero();
+    error DSCEngine__HealthFactorBelowMinimum(uint256 userHealthFactor);
     error DSCEngine__TokenAndPriceFeedAddressesMustBeSameLength();
 
     uint256 private constant PRECISION = 1e18;
+    uint256 private constant MIN_HEALTH_FACTOR = 1;
     uint256 private constant LIQUIDATION_THRESHOLD = 50;
     uint256 private constant LIQUIDATION_PRECISION = 100;
     uint256 private constant ADDITIONAL_FEED_PRECISION = 1e10;
@@ -109,6 +112,8 @@ contract DSCEngine is ReentrancyGuard {
 
         // Revert if user has $100 worth ETH but they minted $250 worth DSC!
         _revertIfHealthFactorIsBroken(msg.sender);
+        bool minted = i_dsc.mint(msg.sender, dscAmountToMint);
+        if (!minted) revert DSCEngine__MintFailed();
     }
 
 
@@ -140,6 +145,8 @@ contract DSCEngine is ReentrancyGuard {
 
 
     function _revertIfHealthFactorIsBroken(address user) internal view {
+        uint256 userHealthFactor = _healthFactor(user);
+        if (userHealthFactor < MIN_HEALTH_FACTOR) revert DSCEngine__HealthFactorBelowMinimum(userHealthFactor);
 
     }
 
