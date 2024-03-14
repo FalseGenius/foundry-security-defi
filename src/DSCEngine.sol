@@ -5,6 +5,7 @@ pragma solidity ^0.8.18;
 import {DecentralizedStableCoin} from "./DecentralizedStableCoin.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 /**
  * @title DSCEngine
@@ -24,12 +25,18 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * @notice This contract is the CORE of DSC system. It handles all the logic for mining and redeeming DSC, as
  * well as depositing & withdrawing collateral.
  * @notice This contract is very loosely based on MakerDSS (DAI) system.
+ * 
+ * @dev Chainlink provides address to ETH/Usd pricefeed. So for each token(ETH/BTC...), we store the pricefeed
+ * provided by chainlink into s_priceFeeds which we can leverage to get current Usd value for that token.
  */
 contract DSCEngine is ReentrancyGuard {
     error DSCEngine__TransferFailed();
     error DSCEngine__NotAllowedToken();
     error DSCEngine__NeedsMoreThanZero();
     error DSCEngine__TokenAndPriceFeedAddressesMustBeSameLength();
+
+    uint256 private constant PRECISION = 1e18;
+    uint256 private constant ADDITIONAL_FEED_PRECISION = 1e10;
 
     address private owner;
     mapping(address token => address priceFeed) private s_priceFeeds;
@@ -137,17 +144,28 @@ contract DSCEngine is ReentrancyGuard {
     //// Public Functions ////
     //////////////////////////
 
-    function getCollateralValueInUsd(address user) public view returns (uint256) {
+    function getCollateralValueInUsd(address user) public view returns (uint256 totalCollateralValueInUsd) {
         // Loop through collateral deposited, map each to its usd price and get total by summing them up.
         for (uint256 i = 0; i < s_collateralTokens.length; i++) {
             address token = s_collateralTokens[i];
             uint256 amountDeposited = s_collateralDeposited[user][token];
-
+            totalCollateralValueInUsd += getUsdValue(token, amountDeposited);
         }
     }
 
+
+
+    /**
+     * @dev price from latestRoundData is of price * 1e8 decimal places while 
+     * amount is 1e18. So we multiply by additional precision to balance it out
+     * and divide the whole thing by 1e18 since the return value of function 
+     * will be too large.
+     */
     function getUsdValue(address token, uint256 amount) public view returns (uint256) {
-        
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
+        (,int256 price,,,) = priceFeed.latestRoundData();
+         
+        return ((uint256(price) * ADDITIONAL_FEED_PRECISION) * amount) / PRECISION;
     }
 
 }
