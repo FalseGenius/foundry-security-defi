@@ -26,7 +26,6 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * @notice This contract is very loosely based on MakerDSS (DAI) system.
  */
 contract DSCEngine is ReentrancyGuard {
-    
     error DSCEngine__TransferFailed();
     error DSCEngine__NotAllowedToken();
     error DSCEngine__NeedsMoreThanZero();
@@ -62,6 +61,9 @@ contract DSCEngine is ReentrancyGuard {
         }
     }
 
+    /**
+     * @dev depositCollateralAndMintDsc is a combo of depositCollateral and mintDsc function.
+     */
     function depositCollateralAndMintDsc() external {}
 
     /**
@@ -82,7 +84,16 @@ contract DSCEngine is ReentrancyGuard {
 
     function redeemCollateralForDsc() external {}
     function redeemCollateral() external {}
-    function mintDsc() external {}
+    
+    /**
+     * 
+     * @param dscAmountToMint The amount of Decentralized stablecoins to mint
+     * @notice They must have more collateral value than minimum threshold.
+     */
+    function mintDsc(uint256 dscAmountToMint) external moreThanZero(dscAmountToMint) {
+        
+    }
+
     function burnDsc() external {}
     function liquidate() external {}
     function getHealthFactor() external {}
