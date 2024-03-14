@@ -33,6 +33,7 @@ contract DSCEngine is ReentrancyGuard {
 
     address private owner;
     mapping(address token => address priceFeed) private s_priceFeeds;
+    mapping(address user => uint256 amountDscMinted) private s_dscMinted;
     mapping(address user => mapping(address token => uint256 amount)) private s_collateralDeposited;
 
     DecentralizedStableCoin private immutable i_dsc;
@@ -91,10 +92,41 @@ contract DSCEngine is ReentrancyGuard {
      * @notice They must have more collateral value than minimum threshold.
      */
     function mintDsc(uint256 dscAmountToMint) external moreThanZero(dscAmountToMint) {
-        
+        s_dscMinted[msg.sender] += dscAmountToMint;
+
+        // Revert if user has $100 worth ETH but they minted $250 worth DSC!
+        _revertIfHealthFactorIsBroken(msg.sender);
     }
+
+
 
     function burnDsc() external {}
     function liquidate() external {}
     function getHealthFactor() external {}
+
+
+    ////////////////////////////////////////
+    //// Private and Internal Functions ////
+    ////////////////////////////////////////
+
+    function getCollateralValueInUsd(address user) private view returns (uint256) {}
+
+    function _getAccountInFormation(address user ) private view returns (uint256 totalDscMinted, uint256 collateralValueInUsd) {
+        totalDscMinted = s_dscMinted[user];
+        collateralValueInUsd = getCollateralValueInUsd(user);
+    }
+
+    /** 
+     * Returns how close to liquidation a user is.
+    */
+    function _healthFactor(address user) private view returns (uint256) {
+        // 1. Need total DSC minted
+        // 2. Get their total collateral VALUE
+        (uint256 totalDscMinted, uint256 collateralValueInUsd) = _getAccountInFormation(user);
+    }
+
+
+    function _revertIfHealthFactorIsBroken(address user) internal view {
+
+    }
 }
