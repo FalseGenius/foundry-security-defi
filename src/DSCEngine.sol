@@ -28,6 +28,7 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
  * 
  * @dev Chainlink provides address to ETH/Usd pricefeed. So for each token(ETH/BTC...), we store the pricefeed
  * provided by chainlink into s_priceFeeds which we can leverage to get current Usd value for that token.
+ * Reference: https://docs.chain.link/data-feeds/price-feeds/addresses?network=ethereum&page=1
  */
 contract DSCEngine is ReentrancyGuard {
     error DSCEngine__TransferFailed();
@@ -36,6 +37,8 @@ contract DSCEngine is ReentrancyGuard {
     error DSCEngine__TokenAndPriceFeedAddressesMustBeSameLength();
 
     uint256 private constant PRECISION = 1e18;
+    uint256 private constant LIQUIDATION_THRESHOLD = 50;
+    uint256 private constant LIQUIDATION_PRECISION = 100;
     uint256 private constant ADDITIONAL_FEED_PRECISION = 1e10;
 
     address private owner;
@@ -131,6 +134,8 @@ contract DSCEngine is ReentrancyGuard {
         // 1. Need total DSC minted
         // 2. Get their total collateral VALUE
         (uint256 totalDscMinted, uint256 collateralValueInUsd) = _getAccountInFormation(user);
+        uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
+        return (collateralAdjustedForThreshold * PRECISION) / totalDscMinted;
     }
 
 
