@@ -33,13 +33,14 @@ contract HelperConfig is Script {
 
     function getSepoliaConfig() public view returns (NetworkConfig memory config) {
         return NetworkConfig({
-            wethUsdPriceFeed:WETH_PRICE_FEED,
-            wbtcUsdPriceFeed:WBTC_PRICE_FEED,
-            weth:WETH,
-            wbtc:WBTC,
-            deployerKey:vm.envUint("RPRIVATE_KEY")
+            wethUsdPriceFeed: WETH_PRICE_FEED,
+            wbtcUsdPriceFeed: WBTC_PRICE_FEED,
+            weth: WETH,
+            wbtc: WBTC,
+            deployerKey: vm.envUint("RPRIVATE_KEY")
         });
     }
+
     function getOrCreateAnvilConfig() public returns (NetworkConfig memory config) {
         if (activeNetwork.wethUsdPriceFeed != address(0)) return activeNetwork;
         vm.startBroadcast();

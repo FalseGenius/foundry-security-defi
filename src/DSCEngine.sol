@@ -25,7 +25,7 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
  * @notice This contract is the CORE of DSC system. It handles all the logic for mining and redeeming DSC, as
  * well as depositing & withdrawing collateral.
  * @notice This contract is very loosely based on MakerDSS (DAI) system.
- * 
+ *
  * @dev Chainlink provides address to ETH/Usd pricefeed. So for each token(ETH/BTC...), we store the pricefeed
  * provided by chainlink into s_priceFeeds which we can leverage to get current Usd value for that token.
  * Reference: https://docs.chain.link/data-feeds/price-feeds/addresses?network=ethereum&page=1
@@ -101,9 +101,9 @@ contract DSCEngine is ReentrancyGuard {
 
     function redeemCollateralForDsc() external {}
     function redeemCollateral() external {}
-    
+
     /**
-     * 
+     *
      * @param dscAmountToMint The amount of Decentralized stablecoins to mint
      * @notice They must have more collateral value than minimum threshold.
      */
@@ -116,25 +116,26 @@ contract DSCEngine is ReentrancyGuard {
         if (!minted) revert DSCEngine__MintFailed();
     }
 
-
-
     function burnDsc() external {}
     function liquidate() external {}
     function getHealthFactor() external {}
-
 
     ////////////////////////////////////////
     //// Private and Internal Functions ////
     ////////////////////////////////////////
 
-    function _getAccountInFormation(address user ) private view returns (uint256 totalDscMinted, uint256 collateralValueInUsd) {
+    function _getAccountInFormation(address user)
+        private
+        view
+        returns (uint256 totalDscMinted, uint256 collateralValueInUsd)
+    {
         totalDscMinted = s_dscMinted[user];
         collateralValueInUsd = getCollateralValueInUsd(user);
     }
 
-    /** 
+    /**
      * Returns how close to liquidation a user is.
-    */
+     */
     function _healthFactor(address user) private view returns (uint256) {
         // 1. Need total DSC minted
         // 2. Get their total collateral VALUE
@@ -143,14 +144,10 @@ contract DSCEngine is ReentrancyGuard {
         return (collateralAdjustedForThreshold * PRECISION) / totalDscMinted;
     }
 
-
     function _revertIfHealthFactorIsBroken(address user) internal view {
         uint256 userHealthFactor = _healthFactor(user);
         if (userHealthFactor < MIN_HEALTH_FACTOR) revert DSCEngine__HealthFactorBelowMinimum(userHealthFactor);
-
     }
-
-
 
     //////////////////////////
     //// Public Functions ////
@@ -165,19 +162,16 @@ contract DSCEngine is ReentrancyGuard {
         }
     }
 
-
-
     /**
-     * @dev price from latestRoundData is of price * 1e8 decimal places while 
+     * @dev price from latestRoundData is of price * 1e8 decimal places while
      * amount is 1e18. So we multiply by additional precision to balance it out
-     * and divide the whole thing by 1e18 since the return value of function 
+     * and divide the whole thing by 1e18 since the return value of function
      * will be too large.
      */
     function getUsdValue(address token, uint256 amount) public view returns (uint256) {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
-        (,int256 price,,,) = priceFeed.latestRoundData();
-         
+        (, int256 price,,,) = priceFeed.latestRoundData();
+
         return ((uint256(price) * ADDITIONAL_FEED_PRECISION) * amount) / PRECISION;
     }
-
 }

@@ -6,7 +6,6 @@ import {DSCEngine} from "../src/DSCEngine.sol";
 import {DecentralizedStableCoin} from "../src/DecentralizedStableCoin.sol";
 
 contract DeployDSC is Script {
-
     function run() external returns (DecentralizedStableCoin, DSCEngine) {
         vm.startBroadcast();
         DecentralizedStableCoin dsc = new DecentralizedStableCoin();
