@@ -55,10 +55,10 @@ contract HelperConfig is Script {
         vm.stopBroadcast();
 
         return NetworkConfig({
-            wethUsdPriceFeed:address(ethPriceFeeds),
-            wbtcUsdPriceFeed:address(btcPriceFeeds),
-            weth:address(wethMock),
-            wbtc:address(wbtcMock),
+            wethUsdPriceFeed: address(ethPriceFeeds),
+            wbtcUsdPriceFeed: address(btcPriceFeeds),
+            weth: address(wethMock),
+            wbtc: address(wbtcMock),
             deployerKey: vm.envUint("PRIVATE_KEY_ANVIL")
         });
     }
