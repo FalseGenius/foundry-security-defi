@@ -24,6 +24,12 @@ contract DeployDSC is Script {
         DSCEngine engine = new DSCEngine(tokenAddresses, priceFeedAddresses,address(dsc));
         vm.stopBroadcast();
 
+
+        /**
+         * @dev Only the engine can make use of dsc since the core logic is there
+         */
+        dsc.transferOwnership(address(engine));
+
         return (dsc, engine);
     }
 }
