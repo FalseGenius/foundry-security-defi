@@ -16,6 +16,9 @@ contract HelperConfig is Script {
         uint256 deployerKey;
     }
 
+    /**
+     * @dev Get addresses from Chainlink pricefeeds
+     */
     address public constant WETH = 0xdd13E55209Fd76AfE204dBda4007C227904f0a81;
     address public constant WBTC = 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063;
     address public constant WETH_PRICE_FEED = 0x694AA1769357215DE4FAC081bf1f309aDC325306;
