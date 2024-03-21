@@ -56,7 +56,7 @@ contract DSCEngine is ReentrancyGuard {
     DecentralizedStableCoin private immutable i_dsc;
 
     event CollateralDeposited(address indexed sender, address indexed token, uint256 indexed amountCollateral);
-    event CollateralRedeemed(address indexed sender, address indexed token, uint256 indexed amountCollateral);
+    event CollateralRedeemed(address indexed redeemed_from, address indexed redeemed_to, address indexed token, uint256 amountCollateral);
 
     modifier moreThanZero(uint256 amount) {
         if (amount == 0) revert DSCEngine__NeedsMoreThanZero();
@@ -139,11 +139,7 @@ contract DSCEngine is ReentrancyGuard {
     moreThanZero(amountCollateral)
     nonReentrant 
     {
-        s_collateralDeposited[msg.sender][tokenCollateralAddress] -= amountCollateral;
-        emit CollateralRedeemed(msg.sender, tokenCollateralAddress, amountCollateral);
-        bool success = IERC20(tokenCollateralAddress).transfer(msg.sender, amountCollateral);
-        if (!success) revert DSCEngine__TransferFailed();
-
+        _redeemCollateral(msg.sender, msg.sender, tokenCollateralAddress, amountCollateral);
         _revertIfHealthFactorIsBroken(msg.sender);
     }
 
@@ -178,7 +174,7 @@ contract DSCEngine is ReentrancyGuard {
      * @param collateral ERC20 collateral to liquidate from user
      * @param user The user who has broken health factor. Their _healthFactor should be above
      * MIN_HEALTH_FACTOR
-     * @param debtToCover Amount of DSC you want to burn to improve user's health factor.
+     * @param debtToCover Amount of DSC you want to burn to improve user's health factor. 
      * 
      * @notice Liquidates positions if individuals are undercollateralized.
      * If someone is undercollateralized, we will pay you to liquidate them.
@@ -203,8 +199,7 @@ contract DSCEngine is ReentrancyGuard {
         uint256 tokenAmountFromDebtCovered = getTokenAmountFromUsd(collateral, debtToCover);
         uint256 bonusCollateral = (tokenAmountFromDebtCovered * LIQUIDATION_BONUS) / LIQUIDATION_PRECISION;
         uint256 totalAmountToRedeem = tokenAmountFromDebtCovered + bonusCollateral;
-        
-
+        _redeemCollateral(user, msg.sender, collateral, totalAmountToRedeem);
     }
     
 
@@ -216,6 +211,13 @@ contract DSCEngine is ReentrancyGuard {
     ////////////////////////////////////////
     //// Private and Internal Functions ////
     ////////////////////////////////////////
+
+    function _redeemCollateral(address from, address to, address tokenCollateralAddress, uint256 amountCollateral) private {
+        s_collateralDeposited[from][tokenCollateralAddress] -= amountCollateral;
+        emit CollateralRedeemed(from, to, tokenCollateralAddress, amountCollateral);
+        bool success = IERC20(tokenCollateralAddress).transferFrom(from, to, amountCollateral);
+        if (!success) revert DSCEngine__TransferFailed();
+    }
 
     function _getAccountInFormation(address user)
         private
