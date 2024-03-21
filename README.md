@@ -14,4 +14,4 @@
 
 
 ## Liquidate Feature note
-Liquidator can cover debt of a user, and get all their collateral in return.
+Liquidator can cover debt of a user by burning their DSC debt, and get all their collateral in return.
