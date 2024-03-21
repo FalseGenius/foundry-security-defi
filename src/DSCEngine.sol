@@ -54,6 +54,7 @@ contract DSCEngine is ReentrancyGuard {
     DecentralizedStableCoin private immutable i_dsc;
 
     event CollateralDeposited(address indexed sender, address indexed token, uint256 indexed amountCollateral);
+    event CollateralRedeemed(address indexed sender, uint256 indexed amountCollateral, address indexed tokenCollateralAddress);
 
     modifier moreThanZero(uint256 amount) {
         if (amount == 0) revert DSCEngine__NeedsMoreThanZero();
@@ -80,6 +81,11 @@ contract DSCEngine is ReentrancyGuard {
 
     /**
      * @dev depositCollateralAndMintDsc is a combo of depositCollateral and mintDsc function.
+     * @param tokenCollateralAddress Address of collateral to deposit
+     * @param amountCollateral Amount worth of tokens to deposit
+     * @param dscAmountToMint Amount of dsc to mint
+     * 
+     * @notice This function will deposit your collateral and mint DSC in one transaction.
      */
     function depositCollateralAndMintDsc(
         address tokenCollateralAddress,
@@ -107,7 +113,18 @@ contract DSCEngine is ReentrancyGuard {
     }
 
     function redeemCollateralForDsc() external {}
-    function redeemCollateral() external {}
+
+    /**
+     * @notice In order to redeem collateral, Health factor must be over 1 AFTER collateral pulled.
+     */
+    function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral) 
+    external 
+    moreThanZero(amountCollateral)
+    nonReentrant 
+    {
+        s_collateralDeposited[msg.sender][tokenCollateralAddress] -= amountCollateral;
+        emit CollateralRedeemed(msg.sender, amountCollateral, tokenCollateralAddress);
+    }
 
     /**
      *
