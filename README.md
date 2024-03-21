@@ -11,3 +11,7 @@
 3. Collateral: Exogenous (Crypto)
     1. wETH
     2. wBTC
+
+
+## Liquidate Feature note
+Liquidator can cover debt of a user, and get all their collateral in return.

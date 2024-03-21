@@ -169,7 +169,19 @@ contract DSCEngine is ReentrancyGuard {
         i_dsc.burn(dscAmountToBurn);
         _revertIfHealthFactorIsBroken(msg.sender); // I don't think this will ever hit...
     }
-    function liquidate() external {}
+
+
+
+    /**
+     * 
+     * @notice Liquidates positions if individuals are undercollateralized.
+     * If someone is undercollateralized, we will pay you to liquidate them.
+     * Liquidator can pay the debtToCover and get all the collateral of user.
+     */
+    function liquidate(address collateral, address user, uint256 debtToCover) external {
+        
+    }
+    
     function getHealthFactor() external {}
 
 
