@@ -33,11 +33,12 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
 contract DSCEngine is ReentrancyGuard {
     error DSCEngine__MintFailed();
     error DSCEngine__TransferFailed();
-    error DSCEngine__NotAllowedToken();
     error DSCEngine__HealthFactorOk();
+    error DSCEngine__NotAllowedToken();
     error DSCEngine__NeedsMoreThanZero();
-    error DSCEngine__HealthFactorBelowMinimum(uint256 userHealthFactor);
+    error DSCEngine__HealthFactorNotImproved();
     error DSCEngine__TokenAndPriceFeedAddressesMustBeSameLength();
+    error DSCEngine__HealthFactorBelowMinimum(uint256 userHealthFactor);
 
     uint256 private constant PRECISION = 1e18;
     uint256 private constant MIN_HEALTH_FACTOR = 1e18;
@@ -161,10 +162,7 @@ contract DSCEngine is ReentrancyGuard {
     public 
     moreThanZero(dscAmountToBurn)   
     {
-        s_dscMinted[msg.sender] -= dscAmountToBurn;
-        bool success = i_dsc.transferFrom(msg.sender, address(this), dscAmountToBurn);
-        if (!success) revert DSCEngine__TransferFailed();
-        i_dsc.burn(dscAmountToBurn);
+        _burnDsc(dscAmountToBurn, msg.sender, msg.sender);
         _revertIfHealthFactorIsBroken(msg.sender); // I don't think this will ever hit...
     }
 
@@ -200,6 +198,11 @@ contract DSCEngine is ReentrancyGuard {
         uint256 bonusCollateral = (tokenAmountFromDebtCovered * LIQUIDATION_BONUS) / LIQUIDATION_PRECISION;
         uint256 totalAmountToRedeem = tokenAmountFromDebtCovered + bonusCollateral;
         _redeemCollateral(user, msg.sender, collateral, totalAmountToRedeem);
+        _burnDsc(debtToCover, user, msg.sender);
+
+        uint256 endingHealthFactor = _healthFactor(user);
+        if (endingHealthFactor <= startingUserHealthFactor) revert DSCEngine__HealthFactorNotImproved();
+        _revertIfHealthFactorIsBroken(msg.sender);
     }
     
 
@@ -211,6 +214,19 @@ contract DSCEngine is ReentrancyGuard {
     ////////////////////////////////////////
     //// Private and Internal Functions ////
     ////////////////////////////////////////
+
+    /**
+     * @dev Low level function. Do not call unless the function calling it is checking for health factors
+     */
+    function _burnDsc(uint256 dscAmountToBurn, address onBehalfOf, address dscFrom)  
+    public 
+    moreThanZero(dscAmountToBurn)   
+    {
+        s_dscMinted[onBehalfOf] -= dscAmountToBurn;
+        bool success = i_dsc.transferFrom(dscFrom, address(this), dscAmountToBurn);
+        if (!success) revert DSCEngine__TransferFailed();
+        i_dsc.burn(dscAmountToBurn);
+    }
 
     function _redeemCollateral(address from, address to, address tokenCollateralAddress, uint256 amountCollateral) private {
         s_collateralDeposited[from][tokenCollateralAddress] -= amountCollateral;
