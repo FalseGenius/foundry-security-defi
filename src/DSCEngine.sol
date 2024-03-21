@@ -81,14 +81,17 @@ contract DSCEngine is ReentrancyGuard {
     /**
      * @dev depositCollateralAndMintDsc is a combo of depositCollateral and mintDsc function.
      */
-    function depositCollateralAndMintDsc() external {}
+    function depositCollateralAndMintDsc(address tokenCollateralAddress, uint256 amountCollateral, uint256 dscAmountToMint) external {
+        depositCollateral(tokenCollateralAddress, amountCollateral);
+        mintDsc(dscAmountToMint);
+    }
 
     /**
      * @param tokenCollateralAddress Address of token to deposit as collateral
      * @param amountCollateral Amount of token to deposit as collateral
      */
     function depositCollateral(address tokenCollateralAddress, uint256 amountCollateral)
-        external
+        public
         moreThanZero(amountCollateral)
         isAllowedToken(tokenCollateralAddress)
         nonReentrant
@@ -107,7 +110,7 @@ contract DSCEngine is ReentrancyGuard {
      * @param dscAmountToMint The amount of Decentralized stablecoins to mint
      * @notice They must have more collateral value than minimum threshold.
      */
-    function mintDsc(uint256 dscAmountToMint) external moreThanZero(dscAmountToMint) {
+    function mintDsc(uint256 dscAmountToMint) public moreThanZero(dscAmountToMint) {
         s_dscMinted[msg.sender] += dscAmountToMint;
 
         // Revert if user has $100 worth ETH but they minted $250 worth DSC!
