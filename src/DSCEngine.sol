@@ -173,12 +173,26 @@ contract DSCEngine is ReentrancyGuard {
 
 
     /**
+     * @param collateral ERC20 collateral to liquidate from user
+     * @param user The user who has broken health factor. Their _healthFactor should be above
+     * MIN_HEALTH_FACTOR
+     * @param debtToCover Amount of DSC you want to burn to improve user's health factor.
      * 
      * @notice Liquidates positions if individuals are undercollateralized.
      * If someone is undercollateralized, we will pay you to liquidate them.
      * Liquidator can pay the debtToCover and get all the collateral of user.
+     * @notice You can partially liquidate a user
+     * @notice You can get liquidation bonus for taking user funds.
+     * @notice This function assumes that protocol working is roughly 200% overcollateralized 
+     * in order for this to work.
+     * @notice A known bug would be if the protocol were 100% or less collateralized, then we wouldn't be
+     * able to incentivize users
+     * For example: If price of collateral plummeted before anyone could be liquidated.
      */
-    function liquidate(address collateral, address user, uint256 debtToCover) external {
+    function liquidate(address collateral, address user, uint256 debtToCover) 
+    external
+    moreThanZero(debtToCover)
+    {
         
     }
     
