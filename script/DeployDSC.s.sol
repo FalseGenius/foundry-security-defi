@@ -7,22 +7,20 @@ import {DecentralizedStableCoin} from "../src/DecentralizedStableCoin.sol";
 import {HelperConfig} from "../script/HelperConfig.s.sol";
 
 contract DeployDSC is Script {
-
     address[] public tokenAddresses;
     address[] public priceFeedAddresses;
 
     function run() external returns (DecentralizedStableCoin, DSCEngine, HelperConfig) {
         HelperConfig config = new HelperConfig();
-        (address wethUsdPriceFeed, address wbtcUsdPriceFeed, address weth, address wbtc,) =
-            config.activeNetwork();
+        (address wethUsdPriceFeed, address wbtcUsdPriceFeed, address weth, address wbtc,) = config.activeNetwork();
 
         tokenAddresses = [weth, wbtc];
         priceFeedAddresses = [wethUsdPriceFeed, wbtcUsdPriceFeed];
-        
+
         vm.startBroadcast();
         DecentralizedStableCoin dsc = new DecentralizedStableCoin();
-        DSCEngine engine = new DSCEngine(tokenAddresses, priceFeedAddresses,address(dsc));
-        
+        DSCEngine engine = new DSCEngine(tokenAddresses, priceFeedAddresses, address(dsc));
+
         /**
          * @dev Only the engine can make use of dsc since the core logic is there
          */

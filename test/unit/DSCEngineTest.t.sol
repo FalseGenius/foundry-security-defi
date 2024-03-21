@@ -10,14 +10,13 @@ import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 
 contract DSCEngineTest is Test {
-
     address weth;
     address wethUsdPriceFeed;
     address public alice = makeAddr("alice");
 
     uint256 constant AMOUNT_COLLATERAL = 10 ether;
     uint256 constant STARTING_ERC20_BALANCE = 10 ether;
-    
+
     DSCEngine public engine;
     DeployDSC public deployer;
     HelperConfig public config;
@@ -32,7 +31,6 @@ contract DSCEngineTest is Test {
         ERC20Mock(weth).mint(alice, STARTING_ERC20_BALANCE);
         // deal(weth, alice, STARTING_ERC20_BALANCE);
     }
-
 
     ///////////////////
     /// Price Tests ///
@@ -53,10 +51,9 @@ contract DSCEngineTest is Test {
     function testRevertsIfCollateralValueIsZero() public {
         vm.startPrank(alice);
         ERC20Mock(weth).approve(address(engine), AMOUNT_COLLATERAL);
-        
+
         vm.expectRevert(DSCEngine.DSCEngine__NeedsMoreThanZero.selector);
         engine.depositCollateral(weth, 0);
         vm.stopPrank();
-
     }
 }
