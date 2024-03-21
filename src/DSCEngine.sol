@@ -34,14 +34,16 @@ contract DSCEngine is ReentrancyGuard {
     error DSCEngine__MintFailed();
     error DSCEngine__TransferFailed();
     error DSCEngine__NotAllowedToken();
+    error DSCEngine__HealthFactorOk();
     error DSCEngine__NeedsMoreThanZero();
     error DSCEngine__HealthFactorBelowMinimum(uint256 userHealthFactor);
     error DSCEngine__TokenAndPriceFeedAddressesMustBeSameLength();
 
     uint256 private constant PRECISION = 1e18;
-    uint256 private constant MIN_HEALTH_FACTOR = 1;
-    uint256 private constant LIQUIDATION_THRESHOLD = 50;
+    uint256 private constant MIN_HEALTH_FACTOR = 1e18;
+    uint256 private constant LIQUIDATION_THRESHOLD = 50; // 200% overcollateralized
     uint256 private constant LIQUIDATION_PRECISION = 100;
+    uint256 private constant LIQUIDATION_BONUS = 10; // this means a 10% bonus
     uint256 private constant ADDITIONAL_FEED_PRECISION = 1e10;
 
     address private owner;
@@ -180,7 +182,8 @@ contract DSCEngine is ReentrancyGuard {
      * 
      * @notice Liquidates positions if individuals are undercollateralized.
      * If someone is undercollateralized, we will pay you to liquidate them.
-     * Liquidator can pay the debtToCover and get all the collateral of user.
+     * Liquidator can burn their debtToCover dsc and get all the collateral of user
+     * effectively removing the user from the system.
      * @notice You can partially liquidate a user
      * @notice You can get liquidation bonus for taking user funds.
      * @notice This function assumes that protocol working is roughly 200% overcollateralized 
@@ -192,10 +195,20 @@ contract DSCEngine is ReentrancyGuard {
     function liquidate(address collateral, address user, uint256 debtToCover) 
     external
     moreThanZero(debtToCover)
+    nonReentrant
     {
+        uint256 startingUserHealthFactor = _healthFactor(user);
+        if (startingUserHealthFactor >= MIN_HEALTH_FACTOR) revert DSCEngine__HealthFactorOk();
+
+        uint256 tokenAmountFromDebtCovered = getTokenAmountFromUsd(collateral, debtToCover);
+        uint256 bonusCollateral = (tokenAmountFromDebtCovered * LIQUIDATION_BONUS) / LIQUIDATION_PRECISION;
+        uint256 totalAmountToRedeem = tokenAmountFromDebtCovered + bonusCollateral;
         
+
     }
     
+
+
     function getHealthFactor() external {}
 
 
@@ -232,6 +245,16 @@ contract DSCEngine is ReentrancyGuard {
     //////////////////////////
     //// Public Functions ////
     //////////////////////////
+
+    function getTokenAmountFromUsd(address token, uint256 amount_in_wei)
+    public
+    view
+    returns (uint256 tokenAmount)
+    {
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
+        (,int256 price,,,) = priceFeed.latestRoundData();
+        tokenAmount = (amount_in_wei * PRECISION)/ (uint256(price) * ADDITIONAL_FEED_PRECISION);
+    }
 
     function getCollateralValueInUsd(address user) public view returns (uint256 totalCollateralValueInUsd) {
         // Loop through collateral deposited, map each to its usd price and get total by summing them up.
