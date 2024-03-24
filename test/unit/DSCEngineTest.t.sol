@@ -80,4 +80,8 @@ contract DSCEngineTest is Test {
         engine.depositCollateral(weth, 0);
         vm.stopPrank();
     }
+
+    function testRevertsWithUnapprovedCollateral() public {
+        // COde this
+    }
 }
