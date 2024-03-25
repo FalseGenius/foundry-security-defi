@@ -245,7 +245,8 @@ contract DSCEngine is ReentrancyGuard {
     }
 
     /**
-     * Returns how close to liquidation a user is.
+     * Returns how close to liquidation a user is. 
+     * @dev If totalDscMinted is 0, it should return max health factor. Current code breaks.
      */
     function _healthFactor(address user) private view returns (uint256) {
         // 1. Need total DSC minted
