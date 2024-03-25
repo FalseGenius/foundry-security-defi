@@ -104,4 +104,6 @@ contract DSCEngineTest is Test {
         assertEq(totalDscMinted, expectedTotalDscMinted);
         assertEq(expectedCollateralValueAmount, AMOUNT_COLLATERAL);
     }
+
+    // Write tests to raise DSCEngine coverage to 85+
 }
