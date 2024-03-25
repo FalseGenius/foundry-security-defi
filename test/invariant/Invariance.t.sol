@@ -7,6 +7,7 @@
 
 pragma solidity ^0.8.18;
 
+import {Handler} from "./Handler.t.sol";
 import {Test} from "forge-std/Test.sol";
 import {DSCEngine} from "../../src/DSCEngine.sol";
 import {DeployDSC} from "../../script/DeployDSC.s.sol";
@@ -18,13 +19,16 @@ import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 
 contract InvariantTest is StdInvariant, Test {
     
+    Handler public handler;
     DSCEngine public engine;
     HelperConfig public config;
     DecentralizedStableCoin public dsc;
+    
+    
     address public weth;
     address public wbtc;
-
     address public alice = makeAddr("alice");
+
 
     function setUp() public {
         DeployDSC dscDeploy = new DeployDSC();
@@ -32,8 +36,13 @@ contract InvariantTest is StdInvariant, Test {
         (,,weth, wbtc, ) = config.activeNetwork();
         deal(alice, 10 ether);
 
+        // Hander starts
+        handler = new Handler(engine, dsc, weth, btc);
+        targetContract(address(handler));
+        // Handler ends
+
         // Tells foundry to go wild on engine! targetContract comes from StdInvariant
-        targetContract(address(engine));
+        // targetContract(address(engine));
     }
 
     function invariant_protocolMustHaveMoreValueThanTotalSupply() public view {
