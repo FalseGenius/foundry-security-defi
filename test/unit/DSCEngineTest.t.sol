@@ -22,6 +22,14 @@ contract DSCEngineTest is Test {
     HelperConfig public config;
     DecentralizedStableCoin public dsc;
 
+    modifier depositCollateral() {
+        vm.startPrank(alice);
+        ERC20Mock(weth).approve(address(engine), AMOUNT_COLLATERAL);
+        engine.depositCollateral(weth, AMOUNT_COLLATERAL);
+        vm.stopPrank();
+        _;
+    }
+
     function setUp() public {
         deployer = new DeployDSC();
         (dsc, engine, config) = deployer.run();
@@ -87,5 +95,13 @@ contract DSCEngineTest is Test {
         vm.prank(alice);
         vm.expectRevert(DSCEngine.DSCEngine__NotAllowedToken.selector);
         engine.depositCollateral(address(erc), STARTING_ERC20_BALANCE);
+    }
+
+    function testCanDepositCollateralAndGetAccountInfo() public depositCollateral {
+        (uint256 totalDscMinted, uint256 collateralValueInUsd) = engine.getAccountInFormation(alice);
+        uint256 expectedTotalDscMinted = 0;
+        uint256 expectedCollateralValueAmount = engine.getTokenAmountFromUsd(weth, collateralValueInUsd);
+        assertEq(totalDscMinted, expectedTotalDscMinted);
+        assertEq(expectedCollateralValueAmount, AMOUNT_COLLATERAL);
     }
 }
