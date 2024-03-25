@@ -83,5 +83,9 @@ contract DSCEngineTest is Test {
 
     function testRevertsWithUnapprovedCollateral() public {
         // COde this
+        ERC20Mock erc = new ERC20Mock("erc", "ERC", alice, STARTING_ERC20_BALANCE);
+        vm.prank(alice);
+        vm.expectRevert(DSCEngine.DSCEngine__NotAllowedToken.selector);
+        engine.depositCollateral(address(erc), STARTING_ERC20_BALANCE);
     }
 }
