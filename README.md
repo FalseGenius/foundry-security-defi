@@ -22,4 +22,12 @@ Act of proving or disproving a given property using a mathematical model.
     that maintain state across interactions, such as network protocols or interactive applications.
     Unlike traditional fuzzing, which treats system as a blackbox and throw random numbers at it,
     stateful fuzzing understands concept of different states and attempts to transition the system
-    through different states in a meaningful way.
+    through different states in a meaningful way. 
+
+    In other words, the ending state of the previous state is the starting state of next test as 
+    opposed to stateless fuzzing. So any changes to state variables are preserved/committed
+    for next test!
+
+    In foundry, stateful fuzzing == Invariant fuzzing
+
+1. What are invariants/properties? That way, we can write stateful and stateless tests.
