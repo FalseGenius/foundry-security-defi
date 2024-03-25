@@ -24,7 +24,9 @@ contract Handler is Test {
     constructor(DSCEngine _engine, DecentralizedStableCoin _dsc) {
         engine = _engine;
         dsc = _dsc;
-
+        address[] memory collateralTokens = engine.getCollateralTokens();
+        weth = ERC20Mock(collateralTokens[0]);
+        wbtc = ERC20Mock(collateralTokens[1]);
     }
 
     /**
@@ -32,13 +34,16 @@ contract Handler is Test {
      * in order to check protocolMustHaveMoreValueThanTotalSupply property.
      */
     function depositCollateral(uint256 collateralSeed, uint256 amountCollateral) public {
-        engine.depositCollateral(collateral, amountCollateral);
+        ERC20Mock collateral = _getCollateralFromSeed(collateralSeed);
+        engine.depositCollateral(address(collateral), amountCollateral);
     }
 
     function _getCollateralFromSeed(uint256 collateralSeed) private view returns (ERC20Mock){
         if (collateralSeed % 2 == 0) {
             return weth;
         }
+
+        return wbtc;
     }
 }
 

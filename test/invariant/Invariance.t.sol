@@ -37,7 +37,7 @@ contract InvariantTest is StdInvariant, Test {
         deal(alice, 10 ether);
 
         // Hander starts
-        handler = new Handler(engine, dsc, weth, btc);
+        handler = new Handler(engine, dsc);
         targetContract(address(handler));
         // Handler ends
 

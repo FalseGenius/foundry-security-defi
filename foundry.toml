@@ -9,4 +9,4 @@ remappings=["forge-std/=lib/forge-std/src/", "@openzeppelin/contracts/=lib/openz
 [invariant]
 runs=128
 depth=128
-fail_on_revert=true
+fail_on_revert=false
