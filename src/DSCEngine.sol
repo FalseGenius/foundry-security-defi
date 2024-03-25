@@ -265,7 +265,6 @@ contract DSCEngine is ReentrancyGuard {
     //// Public Functions ////
     //////////////////////////
 
-
     function getAccountInFormation(address user)
         external
         view
