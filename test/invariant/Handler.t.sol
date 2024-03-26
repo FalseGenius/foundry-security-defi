@@ -39,6 +39,9 @@ contract Handler is Test {
     function depositCollateral(uint256 collateralSeed, uint256 amountCollateral) public {
         address collateral = _getCollateralFromSeed(collateralSeed);
 
+        /**
+         * @dev bound bounds a fuzz value between lowerbound and upperbound. 
+         */
         amountCollateral = bound(amountCollateral, 1, MAX_DEPOSIT_SIZE);
 
         vm.startPrank(msg.sender);
@@ -49,6 +52,19 @@ contract Handler is Test {
         vm.stopPrank();
     }
 
+    function redeemCollateral(uint256 collateralSeed, uint256 amountCollateral) public {
+        address collateralToken = _getCollateralFromSeed(collateralSeed);
+        vm.startPrank(msg.sender);
+        uint256 maxCollateralToRedeem = engine.getTotalCollateralValueOfUser(msg.sender, collateralToken);
+        amountCollateral = bound(amountCollateral, 0, maxCollateralToRedeem);
+        if (amountCollateral == 0) return;
+
+        engine.redeemCollateral(collateralToken, amountCollateral);
+
+        vm.stopPrank();
+
+    }
+
     function _getCollateralFromSeed(uint256 collateralSeed) private view returns (address){
         if (collateralSeed % 2 == 0) {
             return weth;
@@ -56,5 +72,6 @@ contract Handler is Test {
 
         return wbtc;
     }
+
 }
 
