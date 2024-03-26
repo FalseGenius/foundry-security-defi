@@ -17,6 +17,16 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 
 
+
+/**
+ * @dev Add properties to this test function which the system should always hold!
+ * Test contract functions inside handler. This invariance test will trigger
+ * those functions and checks if the property holds true when they're triggered!
+ * 
+ * For example: For this case, we want DSCEngine to have collateral > mintedDSC
+ * at any point in time. So we add that here, and run fuzzers against it inside
+ * handler. 
+ */
 contract InvariantTest is StdInvariant, Test {
     
     Handler public handler;
@@ -56,6 +66,16 @@ contract InvariantTest is StdInvariant, Test {
         uint256 wbtcValue = engine.getUsdValue(wbtc, totalBtcDeposited);
 
         assert(wethValue + wbtcValue >= totalSupply);
+
+    }
+
+
+    /**
+     * @dev Put all getters in there. It tests for all getters to pass. 
+     * It's a layup function of invariant. Don't change its name.
+     */
+    function invariant_gettersShouldNeverRevert() public view {
+        engine.getCollateralTokens();
 
     }
 
