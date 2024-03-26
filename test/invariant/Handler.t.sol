@@ -9,8 +9,10 @@ pragma solidity ^0.8.18;
 
 import {Test} from "forge-std/Test.sol";
 import {DSCEngine} from "../../src/DSCEngine.sol";
+import {MockV3Aggregator} from "../mocks/MockV3Aggregator.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
+
 
 
 contract Handler is Test {
@@ -24,6 +26,7 @@ contract Handler is Test {
     uint256 constant MAX_DEPOSIT_SIZE = type(uint96).max; // max uint96 value
 
     address[] public usersWithCollateralDeposited;
+    MockV3Aggregator public ethUsdPriceFeed;
 
     constructor(DSCEngine _engine, DecentralizedStableCoin _dsc) {
         engine = _engine;
@@ -31,6 +34,8 @@ contract Handler is Test {
         address[] memory collateralTokens = engine.getCollateralTokens();
         weth = collateralTokens[0];
         wbtc = collateralTokens[1];
+
+        ethUsdPriceFeed = MockV3Aggregator(engine.getCollateralTokenPriceFeed(weth));
     }
 
     function mintDsc(uint256 amountToMint, uint256 senderSeed) public {
@@ -86,6 +91,16 @@ contract Handler is Test {
 
         vm.stopPrank();
     }
+
+
+    /**
+     * @dev This breaks our invariant test suite
+     */
+    // function updateCollateralPrice(uint96 price) public {
+    //     int256 newPrice = int256(uint256(price));
+    //     ethUsdPriceFeed.updateAnswer(newPrice);
+    // }
+
 
     ////////////////////////
     /// Helper functions ///
