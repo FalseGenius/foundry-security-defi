@@ -2,9 +2,10 @@
 
 pragma solidity ^0.8.18;
 
+import {OracleLib} from "./libraries/OracleLib.sol";
 import {DecentralizedStableCoin} from "./DecentralizedStableCoin.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 /**
@@ -39,6 +40,12 @@ contract DSCEngine is ReentrancyGuard {
     error DSCEngine__HealthFactorNotImproved();
     error DSCEngine__TokenAndPriceFeedAddressesMustBeSameLength();
     error DSCEngine__HealthFactorBelowMinimum(uint256 userHealthFactor);
+
+    ///////////
+    // Types //
+    ///////////
+
+    using OracleLib for AggregatorV3Interface;
 
     uint256 private constant PRECISION = 1e18;
     uint256 private constant MIN_HEALTH_FACTOR = 1e18;
