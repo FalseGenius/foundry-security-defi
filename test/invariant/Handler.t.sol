@@ -18,8 +18,8 @@ contract Handler is Test {
     DSCEngine engine;
     DecentralizedStableCoin dsc;
 
-    ERC20Mock weth;
-    ERC20Mock wbtc;
+    address weth;
+    address wbtc;
 
     uint256 constant MAX_DEPOSIT_SIZE = type(uint96).max; // max uint96 value
 
@@ -27,23 +27,29 @@ contract Handler is Test {
         engine = _engine;
         dsc = _dsc;
         address[] memory collateralTokens = engine.getCollateralTokens();
-        weth = ERC20Mock(collateralTokens[0]);
-        wbtc = ERC20Mock(collateralTokens[1]);
+        weth = collateralTokens[0];
+        wbtc = collateralTokens[1];
     }
 
     /**
      * @dev Instead of passing it random addresses, we'd want to pass only valid collateral address
      * in order to check protocolMustHaveMoreValueThanTotalSupply property.
      */
+    // function depositCollateral(uint256 collateralSeed, uint256 amountCollateral) public {
     function depositCollateral(uint256 collateralSeed, uint256 amountCollateral) public {
-        ERC20Mock collateral = _getCollateralFromSeed(collateralSeed);
+        address collateral = _getCollateralFromSeed(collateralSeed);
 
         amountCollateral = bound(amountCollateral, 1, MAX_DEPOSIT_SIZE);
 
-        engine.depositCollateral(address(collateral), amountCollateral);
+        vm.startPrank(msg.sender);
+        ERC20Mock(collateral).mint(msg.sender, amountCollateral);
+        ERC20Mock(collateral).approve(address(engine), amountCollateral);
+
+        engine.depositCollateral(collateral, amountCollateral);
+        vm.stopPrank();
     }
 
-    function _getCollateralFromSeed(uint256 collateralSeed) private view returns (ERC20Mock){
+    function _getCollateralFromSeed(uint256 collateralSeed) private view returns (address){
         if (collateralSeed % 2 == 0) {
             return weth;
         }
@@ -52,6 +58,3 @@ contract Handler is Test {
     }
 }
 
-
-// https://www.youtube.com/watch?v=wUjYK5gwNZs
-// 3:55:02
