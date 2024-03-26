@@ -23,12 +23,34 @@ contract Handler is Test {
 
     uint256 constant MAX_DEPOSIT_SIZE = type(uint96).max; // max uint96 value
 
+    address[] public usersWithCollateralDeposited;
+
     constructor(DSCEngine _engine, DecentralizedStableCoin _dsc) {
         engine = _engine;
         dsc = _dsc;
         address[] memory collateralTokens = engine.getCollateralTokens();
         weth = collateralTokens[0];
         wbtc = collateralTokens[1];
+    }
+
+    function mintDsc(uint256 amountToMint, uint256 senderSeed) public {
+        
+        if (usersWithCollateralDeposited.length == 0) return;
+        
+        /** 
+         * @dev The line below ensures that only those who deposited collateral can mintDsc.
+        */
+        address user = usersWithCollateralDeposited[senderSeed % usersWithCollateralDeposited.length];
+        vm.startPrank(user);
+
+        (uint256 totalDscMinted, uint256 collateralValueInUsd) = engine.getAccountInFormation(user);
+        int256 maxDscToMint = (int256(collateralValueInUsd) / 2) - int256(totalDscMinted);
+        if (maxDscToMint < 0) return; 
+        amountToMint = bound(amountToMint, 0, uint256(maxDscToMint));
+        if (amountToMint == 0) return;
+
+        engine.mintDsc(amountToMint);
+        vm.stopPrank();
     }
 
     /**
@@ -50,6 +72,7 @@ contract Handler is Test {
 
         engine.depositCollateral(collateral, amountCollateral);
         vm.stopPrank();
+        usersWithCollateralDeposited.push(msg.sender);
     }
 
     function redeemCollateral(uint256 collateralSeed, uint256 amountCollateral) public {
@@ -62,8 +85,11 @@ contract Handler is Test {
         engine.redeemCollateral(collateralToken, amountCollateral);
 
         vm.stopPrank();
-
     }
+
+    ////////////////////////
+    /// Helper functions ///
+    ////////////////////////
 
     function _getCollateralFromSeed(uint256 collateralSeed) private view returns (address){
         if (collateralSeed % 2 == 0) {
