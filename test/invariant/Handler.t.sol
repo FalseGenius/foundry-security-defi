@@ -14,7 +14,6 @@ import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 
 
-
 contract Handler is Test {
 
     DSCEngine engine;
