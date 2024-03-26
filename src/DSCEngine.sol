@@ -252,6 +252,7 @@ contract DSCEngine is ReentrancyGuard {
         // 1. Need total DSC minted
         // 2. Get their total collateral VALUE
         (uint256 totalDscMinted, uint256 collateralValueInUsd) = _getAccountInFormation(user);
+        if (totalDscMinted == 0) return type(uint256).max;
         uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
         return (collateralAdjustedForThreshold * PRECISION) / totalDscMinted;
     }
