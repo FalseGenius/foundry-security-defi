@@ -2,8 +2,7 @@
 
 // Handler narrows function calls
 // For example, we don't want redeemCollateral to be called by invariant before anything is deposited.
-// Otherwise, it would be wasting time and resources. Handler gives things order. 
-
+// Otherwise, it would be wasting time and resources. Handler gives things order.
 
 pragma solidity ^0.8.18;
 
@@ -13,9 +12,7 @@ import {MockV3Aggregator} from "../mocks/MockV3Aggregator.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 
-
 contract Handler is Test {
-
     DSCEngine engine;
     DecentralizedStableCoin dsc;
 
@@ -38,18 +35,17 @@ contract Handler is Test {
     }
 
     function mintDsc(uint256 amountToMint, uint256 senderSeed) public {
-        
         if (usersWithCollateralDeposited.length == 0) return;
-        
-        /** 
+
+        /**
          * @dev The line below ensures that only those who deposited collateral can mintDsc.
-        */
+         */
         address user = usersWithCollateralDeposited[senderSeed % usersWithCollateralDeposited.length];
         vm.startPrank(user);
 
         (uint256 totalDscMinted, uint256 collateralValueInUsd) = engine.getAccountInFormation(user);
         int256 maxDscToMint = (int256(collateralValueInUsd) / 2) - int256(totalDscMinted);
-        if (maxDscToMint < 0) return; 
+        if (maxDscToMint < 0) return;
         amountToMint = bound(amountToMint, 0, uint256(maxDscToMint));
         if (amountToMint == 0) return;
 
@@ -66,7 +62,7 @@ contract Handler is Test {
         address collateral = _getCollateralFromSeed(collateralSeed);
 
         /**
-         * @dev bound bounds a fuzz value between lowerbound and upperbound. 
+         * @dev bound bounds a fuzz value between lowerbound and upperbound.
          */
         amountCollateral = bound(amountCollateral, 1, MAX_DEPOSIT_SIZE);
 
@@ -91,7 +87,6 @@ contract Handler is Test {
         vm.stopPrank();
     }
 
-
     /**
      * @dev This breaks our invariant test suite
      */
@@ -100,18 +95,15 @@ contract Handler is Test {
     //     ethUsdPriceFeed.updateAnswer(newPrice);
     // }
 
-
     ////////////////////////
     /// Helper functions ///
     ////////////////////////
 
-    function _getCollateralFromSeed(uint256 collateralSeed) private view returns (address){
+    function _getCollateralFromSeed(uint256 collateralSeed) private view returns (address) {
         if (collateralSeed % 2 == 0) {
             return weth;
         }
 
         return wbtc;
     }
-
 }
-
