@@ -315,6 +315,14 @@ contract DSCEngine is ReentrancyGuard {
     //// Getter Functions ////
     //////////////////////////
 
+    function getAdditionalFeedPrecision() public view returns (uint256) {
+        return ADDITIONAL_FEED_PRECISION;
+    }
+
+    function getPrecision() public view returns (uint256) {
+        return PRECISION;
+    }
+
     function getTotalDscMintedByAUser(address user) public view returns (uint256) {
         return s_dscMinted[user];
     } 
