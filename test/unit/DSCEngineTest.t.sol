@@ -6,6 +6,7 @@ import {Test, console} from "forge-std/Test.sol";
 import {DSCEngine} from "../../src/DSCEngine.sol";
 import {DeployDSC} from "../../script/DeployDSC.s.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
+import {MockV3Aggregator} from "../mocks/MockV3Aggregator.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 
@@ -164,9 +165,12 @@ contract DSCEngineTest is Test {
     function testRevertsIfMintAmountBreaksHealthFactor() public depositCollateral {
         uint256 amountToMint = 1;
 
+        (, int256 price,,,) = MockV3Aggregator(wethUsdPriceFeed).latestRoundData();
+        amountToMint = (AMOUNT_COLLATERAL * (uint256(price) * engine.getAdditionalFeedPrecision())) / engine.getPrecision();
         vm.startPrank(alice);
-
-        uint256 userHealthFactor = engine.getHealthFactor(alice);
+        uint256 usdValue = engine.getUsdValue(weth, AMOUNT_COLLATERAL);
+        uint256 userHealthFactor = engine.calculateHealthFactor(usdValue, amountToMint);
+        // uint256 userHealthFactor = engine.getHealthFactor(alice);
         vm.expectRevert(abi.encodeWithSelector(DSCEngine.DSCEngine__HealthFactorBelowMinimum.selector, userHealthFactor));
         engine.mintDsc(amountToMint);
 
