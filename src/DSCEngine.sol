@@ -257,6 +257,9 @@ contract DSCEngine is ReentrancyGuard {
         /**
          * @dev In order to make the system 200% overcollateralized, we half the total collateral of a user.
          * User would need to deposit double the amount everytime in order to not get liquidated.
+         * LIQUIDATION_THRESHOLD = 50
+         * LIQUIDATION_PRECISION = 100 
+         * 50/100 = 1/2 = 0.5
          */
         uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
         return (collateralAdjustedForThreshold * PRECISION) / totalDscMinted;
