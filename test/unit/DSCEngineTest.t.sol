@@ -22,6 +22,10 @@ contract DSCEngineTest is Test {
     HelperConfig public config;
     DecentralizedStableCoin public dsc;
 
+    event CollateralRedeemed(
+        address indexed redeemed_from, address indexed redeemed_to, address indexed token, uint256 amountCollateral
+    );
+
     modifier depositCollateral() {
         vm.startPrank(alice);
         ERC20Mock(weth).approve(address(engine), AMOUNT_COLLATERAL);
@@ -125,6 +129,14 @@ contract DSCEngineTest is Test {
         uint256 collateralAfterRedeem = ERC20Mock(weth).balanceOf(alice);
         assertEq(collateralAfterRedeem, AMOUNT_COLLATERAL);
         
+        vm.stopPrank();
+    }
+
+    function testEmitsEventWhenCollateralIsRedeemed() public depositCollateral {
+        vm.expectEmit(true, true, true, true, address(engine));
+        emit CollateralRedeemed(alice, alice, weth, AMOUNT_COLLATERAL);
+        vm.startPrank(alice);
+        engine.redeemCollateral(weth, AMOUNT_COLLATERAL);
         vm.stopPrank();
     }
 
