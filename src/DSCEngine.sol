@@ -315,6 +315,10 @@ contract DSCEngine is ReentrancyGuard {
     //// Getter Functions ////
     //////////////////////////
 
+    function getTotalDscMintedByAUser(address user) public view returns (uint256) {
+        return s_dscMinted[user];
+    } 
+
     function getCollateralTokenPriceFeed(address token) public view returns (address) {
         return s_priceFeeds[token];
     }

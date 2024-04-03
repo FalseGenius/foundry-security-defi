@@ -111,9 +111,9 @@ contract DSCEngineTest is Test {
 
     // Write tests to raise DSCEngine coverage to 85+
 
-        ////////////////////////////////
-        /// Redeem Collateral Tests ///
-        ////////////////////////////////
+    ////////////////////////////////
+    /// Redeem Collateral Tests ///
+    ////////////////////////////////
 
     function testRevertsRedeemCollateralValueIsZero() public depositCollateral {
         vm.startPrank(alice);
@@ -140,5 +140,19 @@ contract DSCEngineTest is Test {
         vm.stopPrank();
     }
 
+
+    //////////////////////
+    /// Mint DSC Tests ///
+    //////////////////////
+
+    function testRevertsIfAmountToMintIsZero() public depositCollateral {
+        vm.prank(alice);
+        vm.expectRevert(DSCEngine.DSCEngine__NeedsMoreThanZero.selector);
+        engine.mintDsc(0);
+    }
+
+    function testCanMintDsc() public depositCollateral {
+        
+    }
         // vm.expectRevert(abi.encodeWithSelector(DSCEngine.DSCEngine__HealthFactorBelowMinimum.selector, userHealthFactor));
 }
