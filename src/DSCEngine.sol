@@ -254,6 +254,10 @@ contract DSCEngine is ReentrancyGuard {
         // 2. Get their total collateral VALUE
         (uint256 totalDscMinted, uint256 collateralValueInUsd) = _getAccountInFormation(user);
         if (totalDscMinted == 0) return type(uint256).max;
+        /**
+         * @dev In order to make the system 200% overcollateralized, we half the total collateral of a user.
+         * User would need to deposit double the amount everytime in order to not get liquidated.
+         */
         uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
         return (collateralAdjustedForThreshold * PRECISION) / totalDscMinted;
     }
