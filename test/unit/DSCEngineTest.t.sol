@@ -106,4 +106,27 @@ contract DSCEngineTest is Test {
     }
 
     // Write tests to raise DSCEngine coverage to 85+
+
+        ////////////////////////////////
+        /// Redeem Collateral Tests ///
+        ////////////////////////////////
+
+    function testRevertsRedeemCollateralValueIsZero() public depositCollateral {
+        vm.startPrank(alice);
+        
+        vm.expectRevert(DSCEngine.DSCEngine__NeedsMoreThanZero.selector);
+        engine.redeemCollateral(weth, 0);
+        vm.stopPrank();
+    }
+
+    function testCanRedeemCollateral() public depositCollateral {
+        vm.startPrank(alice);
+        engine.redeemCollateral(weth, AMOUNT_COLLATERAL);
+        uint256 collateralAfterRedeem = ERC20Mock(weth).balanceOf(alice);
+        assertEq(collateralAfterRedeem, AMOUNT_COLLATERAL);
+        
+        vm.stopPrank();
+    }
+
+        // vm.expectRevert(abi.encodeWithSelector(DSCEngine.DSCEngine__HealthFactorBelowMinimum.selector, userHealthFactor));
 }
