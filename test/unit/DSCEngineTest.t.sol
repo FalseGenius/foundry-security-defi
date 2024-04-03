@@ -152,7 +152,24 @@ contract DSCEngineTest is Test {
     }
 
     function testCanMintDsc() public depositCollateral {
-        
+        uint256 amountToMint = 1;
+        vm.startPrank(alice);
+        engine.mintDsc(amountToMint);
+        uint256 amountMinted = engine.getTotalDscMintedByAUser(alice);
+        vm.stopPrank();
+
+        assertEq(amountMinted, amountToMint);
     }
-        // vm.expectRevert(abi.encodeWithSelector(DSCEngine.DSCEngine__HealthFactorBelowMinimum.selector, userHealthFactor));
+
+    function testRevertsIfMintAmountBreaksHealthFactor() public depositCollateral {
+        uint256 amountToMint = 1;
+
+        vm.startPrank(alice);
+
+        uint256 userHealthFactor = engine.getHealthFactor(alice);
+        vm.expectRevert(abi.encodeWithSelector(DSCEngine.DSCEngine__HealthFactorBelowMinimum.selector, userHealthFactor));
+        engine.mintDsc(amountToMint);
+
+        vm.stopPrank(); 
+    }
 }
