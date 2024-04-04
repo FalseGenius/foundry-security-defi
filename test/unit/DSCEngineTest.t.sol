@@ -14,8 +14,10 @@ contract DSCEngineTest is Test {
     address weth;
     address wethUsdPriceFeed;
     address public alice = makeAddr("alice");
+    address public liquidator = makeAddr("liquidator");
 
     uint256 amountToMint = 100 ether;
+    uint256 collateralToCover = 20 ether;
     uint256 constant AMOUNT_COLLATERAL = 10 ether;
     uint256 constant STARTING_ERC20_BALANCE = 10 ether;
 
@@ -36,6 +38,15 @@ contract DSCEngineTest is Test {
         _;
     }
 
+    modifier depositCollateralAndMintDsc() {
+        vm.startPrank(alice);
+        ERC20Mock(weth).approve(address(engine), AMOUNT_COLLATERAL);
+        engine.depositCollateral(weth, AMOUNT_COLLATERAL);
+        engine.mintDsc(amountToMint);
+        vm.stopPrank();
+        _;
+    }
+
     function setUp() public {
         deployer = new DeployDSC();
         (dsc, engine, config) = deployer.run();
@@ -43,6 +54,7 @@ contract DSCEngineTest is Test {
 
         // The lines below achieve the same. They both deal alice 10 ether worth weth.
         ERC20Mock(weth).mint(alice, STARTING_ERC20_BALANCE);
+        ERC20Mock(weth).mint(liquidator, collateralToCover);
         // deal(weth, alice, STARTING_ERC20_BALANCE);
     }
 
@@ -239,6 +251,28 @@ contract DSCEngineTest is Test {
         vm.prank(alice);
         vm.expectRevert();
         engine.burnDsc(1);
+
+    }
+
+    //////////////////////
+    /// Liquidate Tests //
+    //////////////////////
+
+    function testRevertsIfDebtToCoverIsZero() public {
+        vm.expectRevert(DSCEngine.DSCEngine__NeedsMoreThanZero.selector);
+        engine.liquidate(weth, alice,0);
         
+    }
+
+    function testRevertsIfHealthFactorIsAboveMinimum() public depositCollateralAndMintDsc {
+        vm.startPrank(liquidator);
+        ERC20Mock(weth).approve(address(engine), collateralToCover);
+        engine.depositCollateralAndMintDsc(weth, collateralToCover, amountToMint);
+
+        dsc.approve(address(engine), amountToMint);
+
+        vm.expectRevert(DSCEngine.DSCEngine__HealthFactorOk.selector);
+        engine.liquidate(weth, alice, amountToMint);
+        vm.stopPrank();
     }
 }
