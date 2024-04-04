@@ -15,6 +15,7 @@ contract DSCEngineTest is Test {
     address wethUsdPriceFeed;
     address public alice = makeAddr("alice");
 
+    uint256 amountToMint = 100 ether;
     uint256 constant AMOUNT_COLLATERAL = 10 ether;
     uint256 constant STARTING_ERC20_BALANCE = 10 ether;
 
@@ -153,7 +154,7 @@ contract DSCEngineTest is Test {
     }
 
     function testCanMintDsc() public depositCollateral {
-        uint256 amountToMint = 1;
+        
         vm.startPrank(alice);
         engine.mintDsc(amountToMint);
         uint256 amountMinted = engine.getTotalDscMintedByAUser(alice);
@@ -163,9 +164,16 @@ contract DSCEngineTest is Test {
     }
 
     function testRevertsIfMintAmountBreaksHealthFactor() public depositCollateral {
-        uint256 amountToMint = 1;
 
         (, int256 price,,,) = MockV3Aggregator(wethUsdPriceFeed).latestRoundData();
+
+        // ADDITIONAL_FEED_PRECISION = 1e10
+        // PRECISION = 1e18
+        // price = 2000e8
+        // AMOUNT_COLLATERAL = 10e18
+        // amountToMint = Collateral * its USD price
+
+        console.log(uint256(price));
         amountToMint = (AMOUNT_COLLATERAL * (uint256(price) * engine.getAdditionalFeedPrecision())) / engine.getPrecision();
         vm.startPrank(alice);
         uint256 usdValue = engine.getUsdValue(weth, AMOUNT_COLLATERAL);
