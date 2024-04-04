@@ -156,6 +156,8 @@ contract DSCEngine is ReentrancyGuard {
      *
      * @param dscAmountToMint The amount of Decentralized stablecoins to mint
      * @notice They must have more collateral value than minimum threshold.
+     * @notice The dscMinted is never compared with collateral. It's compared with USD price of collateral.
+     * So dscAmountToMint = collateral (Eth or BTC) * its USD price.
      */
     function mintDsc(uint256 dscAmountToMint) public moreThanZero(dscAmountToMint) {
         s_dscMinted[msg.sender] += dscAmountToMint;
@@ -267,6 +269,8 @@ contract DSCEngine is ReentrancyGuard {
          * LIQUIDATION_THRESHOLD = 50
          * LIQUIDATION_PRECISION = 100
          * 50/100 = 1/2 = 0.5
+         * 
+         * @notice The dscMinted is never compared with collateral. It's compared with USD price of collateral.
          */
         uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
         return (collateralAdjustedForThreshold * PRECISION) / totalDscMinted;
