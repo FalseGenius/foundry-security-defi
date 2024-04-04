@@ -189,8 +189,9 @@ contract DSCEngineTest is Test {
         // healthFactor = collateralAdjustedForThreshold (10000) / 20000 = 0.5 which is less than 1
 
 
-
-        console.log(uint256(price));
+        /**
+         * @dev We are doing this to make AMOUNT_COLLATERAL large, for testing purposes.
+         */
         amountToMint = (AMOUNT_COLLATERAL * (uint256(price) * engine.getAdditionalFeedPrecision())) / engine.getPrecision();
         console.log(amountToMint);
         vm.startPrank(alice);
@@ -201,5 +202,43 @@ contract DSCEngineTest is Test {
         engine.mintDsc(amountToMint);
 
         vm.stopPrank(); 
+    }
+
+    //////////////////////
+    /// Burn DSC Tests ///
+    //////////////////////
+
+    function testRevertsIfAmountToBurnIsZero() public depositCollateral {
+        vm.startPrank(alice);
+
+        vm.expectRevert(DSCEngine.DSCEngine__NeedsMoreThanZero.selector);
+        engine.burnDsc(0);
+
+        vm.stopPrank();
+    }
+
+    function testCanBurnDsc() public depositCollateral {
+        vm.startPrank(alice);
+        engine.mintDsc(amountToMint);
+        
+        /**
+         * @dev When minting dsc, we don't need to dsc to approve engine since nothing's being transfered
+         * from dsc to engine. For burning dsc, it transfers the amoutToMint(which is amountToBurn) to
+         * the engine and then, it destroys it. Basically, ownership of the amountToMint dsc is tranferred to 
+         * engine from user and it requires approval.
+         */
+        dsc.approve(address(engine), amountToMint);
+        engine.burnDsc(amountToMint);
+        uint256 balanceLeft = dsc.balanceOf(alice);
+        vm.stopPrank();
+
+        assertEq(balanceLeft, 0);
+    }
+
+    function testCantBurnMoreThanUserHas() public {
+        vm.prank(alice);
+        vm.expectRevert();
+        engine.burnDsc(1);
+        
     }
 }
