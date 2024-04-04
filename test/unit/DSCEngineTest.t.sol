@@ -155,6 +155,14 @@ contract DSCEngineTest is Test {
 
     function testCanMintDsc() public depositCollateral {
         
+        // uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
+        // return (collateralAdjustedForThreshold * PRECISION) / totalDscMinted;
+
+        // Collateral Deposited = 10e18;
+        // AmountToMint = 100e18;
+        // collateralAdjustedForThreshold = 2000 * amount(10) * 0.5
+        // healthFactor = collateralAdjustedForThreshold (10000) / 100 = 100
+
         vm.startPrank(alice);
         engine.mintDsc(amountToMint);
         uint256 amountMinted = engine.getTotalDscMintedByAUser(alice);
@@ -167,14 +175,24 @@ contract DSCEngineTest is Test {
 
         (, int256 price,,,) = MockV3Aggregator(wethUsdPriceFeed).latestRoundData();
 
+        // uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
+        // return (collateralAdjustedForThreshold * PRECISION) / totalDscMinted;
+
         // ADDITIONAL_FEED_PRECISION = 1e10
         // PRECISION = 1e18
         // price = 2000e8
         // AMOUNT_COLLATERAL = 10e18
-        // amountToMint = Collateral * its USD price
+
+        // Collateral Deposited = 10e18;
+        // AmountToMint = 20000e18 
+        // collateralAdjustedForThreshold = 2000 * amount(10) * 0.5
+        // healthFactor = collateralAdjustedForThreshold (10000) / 20000 = 0.5 which is less than 1
+
+
 
         console.log(uint256(price));
         amountToMint = (AMOUNT_COLLATERAL * (uint256(price) * engine.getAdditionalFeedPrecision())) / engine.getPrecision();
+        console.log(amountToMint);
         vm.startPrank(alice);
         uint256 usdValue = engine.getUsdValue(weth, AMOUNT_COLLATERAL);
         uint256 userHealthFactor = engine.calculateHealthFactor(usdValue, amountToMint);
