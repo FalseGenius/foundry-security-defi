@@ -275,4 +275,39 @@ contract DSCEngineTest is Test {
         engine.liquidate(weth, alice, amountToMint);
         vm.stopPrank();
     }
+
+    modifier liquidateUser() {
+        (, int256 price,,,) = MockV3Aggregator(wethUsdPriceFeed).latestRoundData();
+        
+        vm.startPrank(alice);
+        ERC20Mock(weth).approve(address(engine), AMOUNT_COLLATERAL);
+        engine.depositCollateral(weth, AMOUNT_COLLATERAL);
+
+        dsc.approve(address(engine), amountToMint);
+        engine.mintDsc(amountToMint);
+        vm.stopPrank();
+
+        int256 newEthUsdPrice = 18e8;
+        MockV3Aggregator(wethUsdPriceFeed).updateAnswer(newEthUsdPrice);
+
+        vm.startPrank(liquidator);
+        ERC20Mock(weth).approve(address(engine), collateralToCover);
+        dsc.approve(address(engine), amountToMint);
+        engine.depositCollateralAndMintDsc(weth, collateralToCover, amountToMint);
+
+        engine.liquidate(weth, alice, amountToMint);
+        vm.stopPrank();
+        _;
+    }
+
+    function testLiquidatorTakesUsersDebt() public {
+        (uint256 totalDscMinted, ) = engine.getAccountInFormation(liquidator);
+        assertEq(totalDscMinted, amountToMint);
+
+    }
+
+    function testUserHasNoMoreDebt() public liquidateUser {
+        (uint256 totalDscMinted, ) = engine.getAccountInFormation(alice);
+        assertEq(totalDscMinted, 0);
+    }
 }
