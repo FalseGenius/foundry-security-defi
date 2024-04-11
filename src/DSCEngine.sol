@@ -303,6 +303,10 @@ contract DSCEngine is ReentrancyGuard {
         tokenAmount = (amount_in_wei * PRECISION) / (uint256(price) * ADDITIONAL_FEED_PRECISION);
     }
 
+    /**
+     * @notice Vulnerability alert! totalCollateralValueInUsd is incorrect because terms of sum may have different
+     * decimals, and therefore different frames of reference. 
+     */
     function getCollateralValueInUsd(address user) public view returns (uint256 totalCollateralValueInUsd) {
         // Loop through collateral deposited, map each to its usd price and get total by summing them up.
         for (uint256 i = 0; i < s_collateralTokens.length; i++) {
