@@ -2,6 +2,10 @@
 
 **Stablecoins are cryptocurrencies that are designed to have stable price.**
 
+### Libraries used
+**1. forge install openzeppelin/openzeppelin-contracts --no-commit**
+**2. forge install smartcontractkit/chainlink-brownie-contracts --no-commit**
+
 ## Features
 1. Relative Stability: Anchored or Pegged -> $1.00
     1. Chainlink price feed
