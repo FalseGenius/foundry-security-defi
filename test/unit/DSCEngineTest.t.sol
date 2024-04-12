@@ -301,7 +301,7 @@ contract DSCEngineTest is Test {
         _;
     }
 
-    function testLiquidatorTakesUsersDebt() public {
+    function testLiquidatorTakesUsersDebt() public view {
         (uint256 totalDscMinted, ) = engine.getAccountInFormation(liquidator);
         assertEq(totalDscMinted, amountToMint);
 
