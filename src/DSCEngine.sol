@@ -296,7 +296,6 @@ contract DSCEngine is ReentrancyGuard {
      * Vulnerability lies in the assumption that all tokens have 18 decimals (represented by PRECISION).
      * This could lead to miscalculation for tokens for fewer decimals since the output returned will
      * not have e18 decimals! So amount_in_wei * 1e18 is not logical for such tokens and calculations breaks apart. 
-     * Same vulnerability in getUsdValue().
      * 
      * RETURNS tokenAmounte18 -> The return value always has 18 decimals (assumption) 
     */
@@ -324,6 +323,9 @@ contract DSCEngine is ReentrancyGuard {
      * amount is 1e18. So we multiply by additional precision to balance it out
      * and divide the whole thing by 1e18 since the return value of function
      * will be too large.
+     * 
+     * @notice Decimal discrepancy vulnerability in this - Returns same decimals as
+     * token decimals instead of 18-decimal USD value.
      */
     function getUsdValue(address token, uint256 amount) public view returns (uint256) {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
