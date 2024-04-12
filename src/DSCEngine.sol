@@ -243,6 +243,14 @@ contract DSCEngine is ReentrancyGuard {
         public
         moreThanZero(dscAmountToBurn)
     {
+        /**
+         * @notice Vulnerability here - DoS of full liquidations are possible by frontrunning the liquidator.
+         * If liquidator tries to liquidate a user and user tries to frontrun the liquidator by liquidating small
+         * amounts of their own position using a secondary address, then liquidator won't be able to liquidate them. 
+         * Liquidator needs to provide precise amount of amountToLiquidate which would be subtracted from user's account.
+         *  What if user has less than the amountToLiquidate? 
+         * The transaction would revert due to underflow, preventing full liquidation.
+         */
         s_dscMinted[onBehalfOf] -= dscAmountToBurn;
         bool success = i_dsc.transferFrom(dscFrom, address(this), dscAmountToBurn);
         if (!success) revert DSCEngine__TransferFailed();
