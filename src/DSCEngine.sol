@@ -198,7 +198,9 @@ contract DSCEngine is ReentrancyGuard {
      * For example: If price of collateral plummeted before anyone could be liquidated.
      * 
      * @notice Vulnerability - liquidate doesn't allow liquidator to liquidate user if
-     *  liquidator health factor < 1
+     *  liquidator health factor < 1. Liquidator should be allowed to liquidate user if 
+     * liquidator's HF is below 1 since they're burning their own funds to cover the debt 
+     * that doesn't impact their HF directly!
      */
     function liquidate(address collateral, address user, uint256 debtToCover)
         external
