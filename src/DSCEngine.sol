@@ -78,6 +78,14 @@ contract DSCEngine is ReentrancyGuard {
         _;
     }
 
+    /**
+     * @notice Double spending vulnerability - Whitelisted collateral addresses are registered along
+     * with their priceFeedAddresses. 
+     * 
+     * The registeration process below doesn't verify that token can be registered twice.
+     * This affects getCollateralValueInUsd(). IF user deposits 10 ETH collateral, getCollateralValueInUsd
+     * would return 20 ETH leading to double spending.
+     */
     constructor(address[] memory tokenAddresses, address[] memory priceFeedAddresses, address dscAddress) {
         if (tokenAddresses.length != priceFeedAddresses.length) {
             revert DSCEngine__TokenAndPriceFeedAddressesMustBeSameLength();
@@ -188,6 +196,9 @@ contract DSCEngine is ReentrancyGuard {
      * @notice A known bug would be if the protocol were 100% or less collateralized, then we wouldn't be
      * able to incentivize users
      * For example: If price of collateral plummeted before anyone could be liquidated.
+     * 
+     * @notice Vulnerability - liquidate doesn't allow liquidator to liquidate user if
+     *  liquidator health factor < 1
      */
     function liquidate(address collateral, address user, uint256 debtToCover)
         external
