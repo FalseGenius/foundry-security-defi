@@ -16,6 +16,25 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
 library OracleLib {
     error OracleLib__StalePrice();
 
+    /**
+     * @notice Vulnerability - DSC protocol can consume stale price data.
+     * Stale period of 3 hrs is too large for Ethereum, Polygon, and Optimism chains, leading to consume stale
+     * price data. More info:
+     * Since the DSC protocol supports every EVM chain (confirmed by the client), let's consider the ETH / USD oracles on different chains.
+
+     *  On Ethereum, the oracle will update the price data every ~1 hour.
+     *  On Polygon, the oracle will update the price data every ~25 seconds.
+     *  On BNB (BSC), the oracle will update the price data every ~60 seconds.
+     *  On Optimism, the oracle will update the price data every ~20 minutes.
+     *  On Arbitrum, the oracle will update the price data every ~24 hours.
+     *  On Avalanche, the oracle will update the price data every ~24 hours.
+     * 
+     * Incorrect prices can cause protocol's functions i.e., mintDsc, burnDsc, redeemCollateral..., to
+     * operate incorrectly.
+     * 
+     * @dev Use mapping data type to record TIMEOUT of each collateral token and setting each token's
+     * timeout with appropriate stale period.
+     */
     uint256 private constant TIMEOUT = 3 hours;
 
     function stalePriceCheck(AggregatorV3Interface priceFeed)
