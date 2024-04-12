@@ -201,6 +201,8 @@ contract DSCEngine is ReentrancyGuard {
      *  liquidator health factor < 1. Liquidator should be allowed to liquidate user if 
      * liquidator's HF is below 1 since they're burning their own funds to cover the debt 
      * that doesn't impact their HF directly!
+     * Recommendations: The system should remove the check _revertIfHealthFactorIsBroken(msg.sender); in the liquidate() function, 
+     * allowing a liquidator to always be able to liquidate a borrower.
      */
     function liquidate(address collateral, address user, uint256 debtToCover)
         external
