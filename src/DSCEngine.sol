@@ -174,6 +174,13 @@ contract DSCEngine is ReentrancyGuard {
         if (!minted) revert DSCEngine__MintFailed();
     }
 
+
+    /**
+     * @notice Improvements - Consider removing _revertIfHealthFactorIsBroken from burnDsc. 
+     * Use case - If a user's HF is below threshold and they want to burn their
+     * DSC to improve the HF, they won't be able to do so, since their health factor
+     * is broken.
+     */
     function burnDsc(uint256 dscAmountToBurn) public moreThanZero(dscAmountToBurn) {
         _burnDsc(dscAmountToBurn, msg.sender, msg.sender);
         _revertIfHealthFactorIsBroken(msg.sender); // I don't think this will ever hit...
