@@ -250,6 +250,11 @@ contract DSCEngine is ReentrancyGuard {
          * Liquidator needs to provide precise amount of amountToLiquidate which would be subtracted from user's account.
          *  What if user has less than the amountToLiquidate? 
          * The transaction would revert due to underflow, preventing full liquidation.
+         * Recommendations: Consider allowing liquidator to provide type(uint256).max as argument to debtToCover
+         * In liquidate, check for,
+         * if debtToCover == type(uint256).max:
+         *      (uint256 dscMinted,) = engine.getAccountInFormation(user);
+         *      debtToCover = dscMinted // This would prevent underflow, providing precise value.
          */
         s_dscMinted[onBehalfOf] -= dscAmountToBurn;
         bool success = i_dsc.transferFrom(dscFrom, address(this), dscAmountToBurn);
