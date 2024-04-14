@@ -153,7 +153,7 @@ contract DSCEngine is ReentrancyGuard {
     }
 
     /**
-     * @notice In order to redeem collateral, Health factor must be over 1 AFTER collateral pulled.
+     * @notice In order to redeem collateral, Health factor must be over 1e18 AFTER collateral pulled.
      */
     function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral)
         public
@@ -177,6 +177,11 @@ contract DSCEngine is ReentrancyGuard {
         // Revert if user has $100 worth ETH but they minted $250 worth DSC!
         _revertIfHealthFactorIsBroken(msg.sender);
         bool minted = i_dsc.mint(msg.sender, dscAmountToMint);
+
+        /**
+         * @dev i_dsc.mint() either reverts or returns true, so the if statement below is meaningless!
+         * Remove redundant code
+         */
         if (!minted) revert DSCEngine__MintFailed();
     }
 
@@ -271,6 +276,11 @@ contract DSCEngine is ReentrancyGuard {
          */
         s_dscMinted[onBehalfOf] -= dscAmountToBurn;
         bool success = i_dsc.transferFrom(dscFrom, address(this), dscAmountToBurn);
+
+        /**
+         * @dev The if statement below never hits since i_dsc.transferFrom() either reverts if false
+         *  or returns true. Remove redundant code.
+         */
         if (!success) revert DSCEngine__TransferFailed();
         i_dsc.burn(dscAmountToBurn);
     }
