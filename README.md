@@ -38,7 +38,7 @@ Act of proving or disproving a given property using a mathematical model.
 
    | Functions     | 
    | :---          | 
-> [**depositCollateral** (*address* tokenCollateralAddress, *uint256* amountCollateral)] (#Stablecoins)    
+> [**depositCollateral** (*address* tokenCollateralAddress, *uint256* amountCollateral)](#Stablecoins)    
 > **mintDsc** (*uint256* dscAmountToMint)                                                   
 > **depositCollateralAndMintDsc** (*address* tokenCollateralAddress, *uint256* amountCollateral,*uint256* dscAmountToMint)       
 > **redeemCollateral** (*address* tokenCollateralAddress, *uint256* amountCollateral)      
