@@ -73,6 +73,9 @@ contract DSCEngine is ReentrancyGuard {
         _;
     }
 
+    /**
+     * @dev Add address to DSCEngine__NotAllowedToken, so developers know which token is not allowed.
+     */
     modifier isAllowedToken(address token) {
         if (s_priceFeeds[token] == address(0)) revert DSCEngine__NotAllowedToken();
         _;
@@ -82,9 +85,10 @@ contract DSCEngine is ReentrancyGuard {
      * @notice Double spending vulnerability - Whitelisted collateral addresses are registered along
      * with their priceFeedAddresses. 
      * 
-     * The registeration process below doesn't verify that token can be registered twice.
+     * The registeration process below doesn't verify that token can be registered twice, or if addresses
+     * passed are zero addresses! For address(0), user experience would fall
      * This affects getCollateralValueInUsd(). IF user deposits 10 ETH collateral, getCollateralValueInUsd
-     * would return 20 ETH leading to double spending.
+     * would return 20 ETH leading to double spending. 
      */
     constructor(address[] memory tokenAddresses, address[] memory priceFeedAddresses, address dscAddress) {
         if (tokenAddresses.length != priceFeedAddresses.length) {
@@ -164,6 +168,8 @@ contract DSCEngine is ReentrancyGuard {
      *
      * @param dscAmountToMint The amount of Decentralized stablecoins to mint
      * @notice They must have more collateral value than minimum threshold.
+     * @notice Consider adding events for crucial operations; minting, burning, liquidate.
+     * Otherwise, off-chain applications won't be notified if something has happened on blockchain.
      */
     function mintDsc(uint256 dscAmountToMint) public moreThanZero(dscAmountToMint) {
         s_dscMinted[msg.sender] += dscAmountToMint;
