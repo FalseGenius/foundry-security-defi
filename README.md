@@ -35,3 +35,11 @@ Act of proving or disproving a given property using a mathematical model.
     In foundry, stateful fuzzing == Invariant fuzzing
 
 1. What are invariants/properties? That way, we can write stateful and stateless tests.
+
+   | Functions     | 
+   | :---          | 
+> **depositCollateral** (*address* tokenCollateralAddress, *uint256* amountCollateral)      
+> **mintDsc** (*uint256* dscAmountToMint)                                                   
+> **depositCollateralAndMintDsc** (*address* tokenCollateralAddress, *uint256* amountCollateral,*uint256* dscAmountToMint)       
+> **redeemCollateral** (*address* tokenCollateralAddress, *uint256* amountCollateral)      
+> **redeemCollateralForDsc** (*address* tokenCollateralAddress, *uint256* amountCollateral, *uint256* dscAmountToBurn)      
