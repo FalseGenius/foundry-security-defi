@@ -1,4 +1,4 @@
-## Stablecoins {#Stablecoins}
+## Stablecoins
 
 **Stablecoins are cryptocurrencies that are designed to have stable price.**
 
