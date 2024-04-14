@@ -36,8 +36,13 @@ Act of proving or disproving a given property using a mathematical model.
 
 1. What are invariants/properties? That way, we can write stateful and stateless tests.
 
+
+
+
 | Functions                                              | 
 | :---                                                   | 
+
+
 > [**depositCollateral** (tokenCollateralAddress, amountCollateral)](#function-depositcollateral)   
 
 > **mintDsc** ( dscAmountToMint)                                                   
@@ -47,6 +52,10 @@ Act of proving or disproving a given property using a mathematical model.
 > **redeemCollateral** (tokenCollateralAddress,  amountCollateral)      
 
 > **redeemCollateralForDsc** (tokenCollateralAddress,  amountCollateral,  dscAmountToBurn)      
+
+
+
+
 
 
 ###### Function depositCollateral
