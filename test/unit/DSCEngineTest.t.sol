@@ -109,7 +109,7 @@ contract DSCEngineTest is Test {
 
     function testRevertsWithUnapprovedCollateral() public {
         // COde this
-        
+
         ERC20Mock erc = new ERC20Mock("erc", "ERC", alice, STARTING_ERC20_BALANCE);
         vm.prank(alice);
         vm.expectRevert(DSCEngine.DSCEngine__NotAllowedToken.selector);
@@ -132,7 +132,7 @@ contract DSCEngineTest is Test {
 
     function testRevertsRedeemCollateralValueIsZero() public depositCollateral {
         vm.startPrank(alice);
-        
+
         vm.expectRevert(DSCEngine.DSCEngine__NeedsMoreThanZero.selector);
         engine.redeemCollateral(weth, 0);
         vm.stopPrank();
@@ -143,7 +143,7 @@ contract DSCEngineTest is Test {
         engine.redeemCollateral(weth, AMOUNT_COLLATERAL);
         uint256 collateralAfterRedeem = ERC20Mock(weth).balanceOf(alice);
         assertEq(collateralAfterRedeem, AMOUNT_COLLATERAL);
-        
+
         vm.stopPrank();
     }
 
@@ -154,7 +154,6 @@ contract DSCEngineTest is Test {
         engine.redeemCollateral(weth, AMOUNT_COLLATERAL);
         vm.stopPrank();
     }
-
 
     //////////////////////
     /// Mint DSC Tests ///
@@ -167,7 +166,6 @@ contract DSCEngineTest is Test {
     }
 
     function testCanMintDsc() public depositCollateral {
-        
         // uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
         // return (collateralAdjustedForThreshold * PRECISION) / totalDscMinted;
 
@@ -185,7 +183,6 @@ contract DSCEngineTest is Test {
     }
 
     function testRevertsIfMintAmountBreaksHealthFactor() public depositCollateral {
-
         (, int256 price,,,) = MockV3Aggregator(wethUsdPriceFeed).latestRoundData();
 
         // uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
@@ -197,24 +194,26 @@ contract DSCEngineTest is Test {
         // AMOUNT_COLLATERAL = 10e18
 
         // Collateral Deposited = 10e18;
-        // AmountToMint = 20000e18 
+        // AmountToMint = 20000e18
         // collateralAdjustedForThreshold = 2000 * amount(10) * 0.5
         // healthFactor = collateralAdjustedForThreshold (10000) / 20000 = 0.5 which is less than 1
-
 
         /**
          * @dev We are doing this to make AMOUNT_COLLATERAL large, for testing purposes.
          */
-        amountToMint = (AMOUNT_COLLATERAL * (uint256(price) * engine.getAdditionalFeedPrecision())) / engine.getPrecision();
+        amountToMint =
+            (AMOUNT_COLLATERAL * (uint256(price) * engine.getAdditionalFeedPrecision())) / engine.getPrecision();
         console.log(amountToMint);
         vm.startPrank(alice);
         uint256 usdValue = engine.getUsdValue(weth, AMOUNT_COLLATERAL);
         uint256 userHealthFactor = engine.calculateHealthFactor(usdValue, amountToMint);
         // uint256 userHealthFactor = engine.getHealthFactor(alice);
-        vm.expectRevert(abi.encodeWithSelector(DSCEngine.DSCEngine__HealthFactorBelowMinimum.selector, userHealthFactor));
+        vm.expectRevert(
+            abi.encodeWithSelector(DSCEngine.DSCEngine__HealthFactorBelowMinimum.selector, userHealthFactor)
+        );
         engine.mintDsc(amountToMint);
 
-        vm.stopPrank(); 
+        vm.stopPrank();
     }
 
     //////////////////////
@@ -233,11 +232,11 @@ contract DSCEngineTest is Test {
     function testCanBurnDsc() public depositCollateral {
         vm.startPrank(alice);
         engine.mintDsc(amountToMint);
-        
+
         /**
          * @dev When minting dsc, we don't need to dsc to approve engine since nothing's being transfered
          * from dsc to engine. For burning dsc, it transfers the amoutToMint(which is amountToBurn) to
-         * the engine and then, it destroys it. Basically, ownership of the amountToMint dsc is tranferred to 
+         * the engine and then, it destroys it. Basically, ownership of the amountToMint dsc is tranferred to
          * engine from user and it requires approval.
          */
         dsc.approve(address(engine), amountToMint);
@@ -252,7 +251,6 @@ contract DSCEngineTest is Test {
         vm.prank(alice);
         vm.expectRevert();
         engine.burnDsc(1);
-
     }
 
     //////////////////////
@@ -261,8 +259,7 @@ contract DSCEngineTest is Test {
 
     function testRevertsIfDebtToCoverIsZero() public {
         vm.expectRevert(DSCEngine.DSCEngine__NeedsMoreThanZero.selector);
-        engine.liquidate(weth, alice,0);
-        
+        engine.liquidate(weth, alice, 0);
     }
 
     function testRevertsIfHealthFactorIsAboveMinimum() public depositCollateralAndMintDsc {
@@ -279,7 +276,7 @@ contract DSCEngineTest is Test {
 
     modifier liquidateUser() {
         (, int256 price,,,) = MockV3Aggregator(wethUsdPriceFeed).latestRoundData();
-        
+
         vm.startPrank(alice);
         ERC20Mock(weth).approve(address(engine), AMOUNT_COLLATERAL);
         engine.depositCollateral(weth, AMOUNT_COLLATERAL);
@@ -302,13 +299,12 @@ contract DSCEngineTest is Test {
     }
 
     function testLiquidatorTakesUsersDebt() public view {
-        (uint256 totalDscMinted, ) = engine.getAccountInFormation(liquidator);
+        (uint256 totalDscMinted,) = engine.getAccountInFormation(liquidator);
         assertEq(totalDscMinted, amountToMint);
-
     }
 
     function testUserHasNoMoreDebt() public liquidateUser {
-        (uint256 totalDscMinted, ) = engine.getAccountInFormation(alice);
+        (uint256 totalDscMinted,) = engine.getAccountInFormation(alice);
         assertEq(totalDscMinted, 0);
     }
 }

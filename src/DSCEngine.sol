@@ -83,12 +83,12 @@ contract DSCEngine is ReentrancyGuard {
 
     /**
      * @notice Double spending vulnerability - Whitelisted collateral addresses are registered along
-     * with their priceFeedAddresses. 
-     * 
+     * with their priceFeedAddresses.
+     *
      * The registeration process below doesn't verify that token can be registered twice, or if addresses
      * passed are zero addresses! For address(0), user experience would fall
      * This affects getCollateralValueInUsd(). IF user deposits 10 ETH collateral, getCollateralValueInUsd
-     * would return 20 ETH leading to double spending. 
+     * would return 20 ETH leading to double spending.
      */
     constructor(address[] memory tokenAddresses, address[] memory priceFeedAddresses, address dscAddress) {
         if (tokenAddresses.length != priceFeedAddresses.length) {
@@ -185,9 +185,8 @@ contract DSCEngine is ReentrancyGuard {
         if (!minted) revert DSCEngine__MintFailed();
     }
 
-
     /**
-     * @notice Improvements - Consider removing _revertIfHealthFactorIsBroken from burnDsc. 
+     * @notice Improvements - Consider removing _revertIfHealthFactorIsBroken from burnDsc.
      * Use case - If a user's HF is below threshold and they want to burn their
      * DSC to improve the HF, they won't be able to do so, since their health factor
      * is broken.
@@ -214,12 +213,12 @@ contract DSCEngine is ReentrancyGuard {
      * @notice A known bug would be if the protocol were 100% or less collateralized, then we wouldn't be
      * able to incentivize users
      * For example: If price of collateral plummeted before anyone could be liquidated.
-     * 
+     *
      * @notice Vulnerability - liquidate doesn't allow liquidator to liquidate user if
-     *  liquidator health factor < 1. Liquidator should be allowed to liquidate user if 
-     * liquidator's HF is below 1 since they're burning their own funds to cover the debt 
+     *  liquidator health factor < 1. Liquidator should be allowed to liquidate user if
+     * liquidator's HF is below 1 since they're burning their own funds to cover the debt
      * that doesn't impact their HF directly!
-     * Recommendations: The system should remove the check _revertIfHealthFactorIsBroken(msg.sender); in the liquidate() function, 
+     * Recommendations: The system should remove the check _revertIfHealthFactorIsBroken(msg.sender); in the liquidate() function,
      * allowing a liquidator to always be able to liquidate a borrower.
      */
     function liquidate(address collateral, address user, uint256 debtToCover)
@@ -245,7 +244,11 @@ contract DSCEngine is ReentrancyGuard {
         healthFactor = _healthFactor(user);
     }
 
-    function calculateHealthFactor(uint256 collateralValueInUsd, uint256 totalDscMinted) external pure returns (uint256) {
+    function calculateHealthFactor(uint256 collateralValueInUsd, uint256 totalDscMinted)
+        external
+        pure
+        returns (uint256)
+    {
         uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
         return (collateralAdjustedForThreshold * PRECISION) / totalDscMinted;
     }
@@ -264,9 +267,9 @@ contract DSCEngine is ReentrancyGuard {
         /**
          * @notice Vulnerability here - DoS of full liquidations are possible by frontrunning the liquidator.
          * If liquidator tries to liquidate a user and user tries to frontrun the liquidator by liquidating small
-         * amounts of their own position using a secondary address, then liquidator won't be able to liquidate them. 
+         * amounts of their own position using a secondary address, then liquidator won't be able to liquidate them.
          * Liquidator needs to provide precise amount of amountToLiquidate which would be subtracted from user's account.
-         *  What if user has less than the amountToLiquidate? 
+         *  What if user has less than the amountToLiquidate?
          * The transaction would revert due to underflow, preventing full liquidation.
          * Recommendations: Consider allowing liquidator to provide type(uint256).max as argument to debtToCover
          * In liquidate, check for,
@@ -318,7 +321,7 @@ contract DSCEngine is ReentrancyGuard {
          * LIQUIDATION_THRESHOLD = 50
          * LIQUIDATION_PRECISION = 100
          * 50/100 = 1/2 = 0.5
-         * 
+         *
          */
         uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
         return (collateralAdjustedForThreshold * PRECISION) / totalDscMinted;
@@ -346,10 +349,10 @@ contract DSCEngine is ReentrancyGuard {
      * token's amount_in_wei * PRECISION (1e18).
      * Vulnerability lies in the assumption that all tokens have 18 decimals (represented by PRECISION).
      * This could lead to miscalculation for tokens for fewer decimals since the output returned will
-     * not have e18 decimals! So amount_in_wei * 1e18 is not logical for such tokens and calculations breaks apart. 
-     * 
-     * RETURNS tokenAmounte18 -> The return value always has 18 decimals (assumption) 
-    */
+     * not have e18 decimals! So amount_in_wei * 1e18 is not logical for such tokens and calculations breaks apart.
+     *
+     * RETURNS tokenAmounte18 -> The return value always has 18 decimals (assumption)
+     */
     function getTokenAmountFromUsd(address token, uint256 amount_in_wei) public view returns (uint256 tokenAmount) {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
         (, int256 price,,,) = priceFeed.latestRoundData();
@@ -358,7 +361,7 @@ contract DSCEngine is ReentrancyGuard {
 
     /**
      * @notice Vulnerability alert! totalCollateralValueInUsd is incorrect because terms of sum may have different
-     * decimals, and therefore different frames of reference. 
+     * decimals, and therefore different frames of reference.
      */
     function getCollateralValueInUsd(address user) public view returns (uint256 totalCollateralValueInUsd) {
         // Loop through collateral deposited, map each to its usd price and get total by summing them up.
@@ -374,7 +377,7 @@ contract DSCEngine is ReentrancyGuard {
      * amount is 1e18. So we multiply by additional precision to balance it out
      * and divide the whole thing by 1e18 since the return value of function
      * will be too large.
-     * 
+     *
      * @notice Decimal discrepancy vulnerability in this - Returns same decimals as
      * token decimals instead of 18-decimal USD value.
      */
@@ -398,7 +401,7 @@ contract DSCEngine is ReentrancyGuard {
 
     function getTotalDscMintedByAUser(address user) public view returns (uint256) {
         return s_dscMinted[user];
-    } 
+    }
 
     function getCollateralTokenPriceFeed(address token) public view returns (address) {
         return s_priceFeeds[token];
